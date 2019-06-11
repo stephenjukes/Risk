@@ -15,12 +15,14 @@ namespace Risk
         public CountryInfo[] _countries { get; set; }
         public Deployment _previousDeployment { get; set; }
         public int _armiesToDistribute { get; set; }    // Can't we use Armies from 'From'?
+        public List<Card> _cards { get; set; }
 
 
         public ResponseValidationBuilder<TestObject, TMatch> Parameter<Parameter>(Parameter parameter)
         {
             if (parameter == null) return this;
 
+            // Fun, but not really the correct way (what if 2 properties have the same type).
             var property = this.GetType().GetProperties().Where(p => p.PropertyType == parameter.GetType()).FirstOrDefault();
             property.SetValue(this, parameter);
 
@@ -56,7 +58,8 @@ namespace Risk
                 _errorChecks = _errorChecks,
                 _player = _player,
                 _countries = _countries,
-                _previousDeployment = _previousDeployment
+                _previousDeployment = _previousDeployment,
+                _cards = _cards
             };
         }
     }

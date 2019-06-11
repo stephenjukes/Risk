@@ -70,6 +70,7 @@ namespace Risk
 
             // BUGS
 
+            // v1.
             // DONE: income from continents not working
             // DONE: some of the remote neighbours not working(eg: 16 - 17)36
             // DONE: cards not rendered nicely
@@ -78,22 +79,22 @@ namespace Risk
             // DONE:    player remains active
             // DONE:    cards are not transferred
             // DONE: textbox not clearing top line(only ?)
-            // textbox instructions to be paragraphed
+            // DONE: textbox instructions to be paragraphed
             // DONE: asking how many armies to transfer after stating in deployment parameters
-            // add remote neighbour links
-            // ~~~ amend to find 'y' and 'n' with regex (to handle approximate responses)
-            // ensure that all countries start with 1 army
             // DONE: don't tell players they have a full set if they don't view their cards
-
-            //        cards are not distributed randomly
-            // player 1: infantry infantry infantry
-            // player 2: cavalry cavalry cavalry
-            // player 3: artillery artillery artillery
             // DONE: Attack with same parameters no longer recognised, (due attempting to build model with no parameters)
             // DONE: When transferring a number higher that held, the appropriate error message is rendered, but eventually the incorrect number of armies are transferred.
             // DONE: Sometimes attacking with one more army than asked
             // DONE: Exception thrown when unidentified country selected during attack
             // DONE: Exception thrown when too many armies are selected for attack
+            // DONE: After receipt of 3 cards, player asked to trade even after refusing to view cards
+            // DONE: cards: correct number but incorrect ids shows 'incorrect number of parameters provided'
+            // DONE: show how army income is calculated at the beginning of each turn.
+            // DONE: player should not be allowed to quit trading cards if they have 5 cards
+            // add remote neighbour links
+            // ~~~ amend to find 'y' and 'n' with regex (to handle approximate responses)
+            // DONE: ensure that all countries start with 1 army
+            // DONE: cards are not distributed randomly
         }
     }
 }

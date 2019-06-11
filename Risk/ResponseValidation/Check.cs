@@ -62,5 +62,29 @@ namespace Risk
             var error = "No previous attack parameters";
             return p.PreviousDeployment == null ? error : null;
         }
+
+        public static string ThreeSelectedFromOwnCards(ValidationParameter<List<Card>> p)
+        {
+            var error = "Invalid selection";
+            return p.Object.Count() != 3 ? error : null;
+        }
+
+        //public static string ValidCardIds(ValidationParameter<List<Card>> p)
+        //{
+        //    var error = "You cannot select cards that you do not own";
+        //    return p.Object.Count != 3 ? error : null;
+        //}
+
+        public static string ValidSet(ValidationParameter<List<Card>> p)
+        {
+            var error = "Invalid set";
+            var distinctCardTypes = p.Object.Select(c => c.CardType).Distinct();
+            var containsWildCard = distinctCardTypes.Contains(CardType.Wild);
+            var isValidSet = containsWildCard || distinctCardTypes.Count() == 1 || distinctCardTypes.Count() == 3;
+
+            return !isValidSet ? error : null;
+        }
     }
 }
+
+

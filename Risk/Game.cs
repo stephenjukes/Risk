@@ -30,7 +30,6 @@ namespace Risk
             Player currentPlayer = null;
 
             SetUpGame();
-            Render();   // TODO: is this necessary here as well as in game setup?
 
             while (gameActive)
             {
@@ -54,8 +53,21 @@ namespace Risk
             DefineNeighbours();
             SetUpPlayers();
             AllocateCountries();
+            DetermineOpeningIncome();
             Render();
             SetUpArmies();
+        }
+
+        private void DetermineOpeningIncome()
+        {
+            var armiesBeforeCountryAllocation = armiesOnSetup[_players.Length];
+            var countriesByPlayer = _countries.GroupBy(c => c.Occupier);
+
+            foreach (var group in countriesByPlayer)
+            {
+                var player = group.Key;
+                player.OpeningIncome = armiesBeforeCountryAllocation - group.Count();
+            }
         }
 
         private void Play(Player player)
@@ -211,13 +223,15 @@ namespace Risk
             var cardTypes = new Type[] { typeof(InfantryCard), typeof(CavalryCard), typeof(ArtilleryCard) };
 
             _cards = _countries
-                .OrderBy(c => _random.Next())
-                .Select((country, index) =>
-                {
-                    var cardType = cardTypes[index % cardTypes.Length];
-                    var card = (Card)Activator.CreateInstance(cardType, country.Id, country.Name);
-                    return card;
-                }).ToList();
+                .OrderBy(c => _random.Next())   // shuffles countries
+                .Select((country, index) =>     // TODO: redo without reflection.
+                    {
+                        var cardType = cardTypes[index % cardTypes.Length];
+                        var card = (Card)Activator.CreateInstance(cardType, country.Id, country.Name);
+                        return card;
+                    })
+                .OrderBy(c => _random.Next())   // shuffles card types
+                .ToList();
         }
 
         private void SetUpContinents()
@@ -231,11 +245,13 @@ namespace Risk
         {
             var occupied = _countries.Where(c => c.Occupier.Name == player.Name);
             
-            var incomeByCountryOccupation = DefineIncomeByCountryOccupation(occupied.Count());
-            var incomeByContinentOccupation = DefineIncomeByContinentOccupation(occupied);
-            var incomeFromCards = ManageCards(player);
+            var fromCountries = DefineIncomeByCountryOccupation(occupied.Count());
+            var fromContinents = DefineIncomeByContinentOccupation(occupied);
+            var fromCards = ManageCards(player);
 
-            return incomeByCountryOccupation + incomeByContinentOccupation + incomeFromCards;
+            _ui.DisplayArmyIncome(fromCountries, fromContinents, fromCards);
+
+            return fromCountries + fromContinents + fromCards;
 
         }
 
@@ -372,7 +388,7 @@ namespace Risk
 
         private void AllocateCountries()
         {
-            var shuffledCountries = _countries.OrderBy(c => Guid.NewGuid()).ToArray();
+            var shuffledCountries = _countries.OrderBy(c =>_random.Next()).ToArray();
             var i = 1;
 
             foreach(var country in shuffledCountries)
@@ -383,21 +399,26 @@ namespace Risk
             }
         }
 
+        // Consider whether to retain original OpeningIncomes in players instead of mutating.
         private void SetUpArmies()
         {
-            var setupIncome = armiesOnSetup[_players.Length];
-            while (setupIncome > 0)
+            bool armiesStillToDistribute = true;
+
+            while (armiesStillToDistribute)
             {
-                var distributionForThisTurn = 40;
+                var distributionPerTurn = 10;               
                 foreach (var player in _players)
                 {
+                    var distributionForThisTurn = player.OpeningIncome < distributionPerTurn ? player.OpeningIncome : distributionPerTurn;
+
                     DistributeArmies(player, distributionForThisTurn);
+                    player.OpeningIncome -= distributionForThisTurn;
 
                     // TODO: Try to add this to ConsoleUserInterface later.
                     _ui._textbox.Clear();
                 }
-                         
-                setupIncome -= distributionForThisTurn;
+
+                armiesStillToDistribute = _players.Any(p => p.OpeningIncome > 0);
             }
         }
 
@@ -424,7 +445,5 @@ namespace Risk
 
             country.Armies += 2;
         }
-
-
     }
 }

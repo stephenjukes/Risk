@@ -184,6 +184,7 @@ namespace Risk
         public List<Card> ManageCards(List<Card> cards, bool hasValidSet)
         {
             _textbox.Write($"You have {cards.Count} cards.");
+            _textbox.Write();
 
             if (cards.Count == 5)
             {
@@ -198,16 +199,13 @@ namespace Risk
             var playerWantsToView = GetDecisionToView(cards);
             if (playerWantsToView) ViewCards(cards);
 
-            if (hasValidSet)
+            if (playerWantsToView && hasValidSet)
             {
                 var playerWantsToTrade = GetDecisionToTrade();
                 return playerWantsToTrade ? TradeCards(cards) : new List<Card>();
             }
-            else
-            {
-                //_textbox.Write("You have no sets to trade in");
-                return new List<Card>();
-            }
+
+            return new List<Card>();
         }
 
         private bool GetDecisionToView(List<Card> cards)
@@ -247,7 +245,7 @@ namespace Risk
 
         private bool GetDecisionToTrade()
         {
-            _textbox.Write("Trade\n(Press 'y' to view or 'n' to skip)");
+            _textbox.Write("Trade\n(Press 'y' to trade or 'n' to skip)");
             var selection = _textbox.Read().ToLower();
 
             _textbox.Write();
@@ -267,48 +265,51 @@ namespace Risk
 
         private List<Card> TradeCards(List<Card> cards)
         {
-            _textbox.Write("Select card IDs for trade, separated by a comma (or 'q' to skip)");
-            var input = _textbox.Read().ToLower();
-
-            _textbox.Write();
-
-            // quit
-            if (input == "q") return new List<Card>();
-
-            var selectedIds = Regex.Matches(input, @"\d+")
-                .Select(n => int.Parse(n.ToString()));
-
-            // incorrect quantity
-            if (selectedIds.Count() != 3)
+            while (true)
             {
-                _textbox.Write("Incorrect number of cards selected. Please select 3 IDs");
+                _textbox.Write("Select card IDs for trade, separated by a comma");
+                if (cards.Count < 5) _textbox.Write("(or 'q' to skip)");
+
+                var response = _textbox.Read().ToLower();
                 _textbox.Write();
-                TradeCards(cards);
+
+                if (response == "q")
+                {
+                    if (cards.Count >= 5)
+                    {
+                        _textbox.Write("Cannot quit - you must trade when holding at least 5 cards");
+                        _textbox.Write();
+                        continue;
+                    }
+                    else
+                    {
+                        return new List<Card>();
+                    }   
+                }
+
+                var selection = ValidateCardTrade(cards, response);
+
+                if (selection.IsValid)
+                    return selection.Object;
+
+                HandleError(selection.Error);
             }
+        }
 
-            // invalid ids
-            var areValidIds = cards.Where(c => selectedIds.Contains(c.Id)).Count() == 3;
-            if (!areValidIds)
-            {
-                _textbox.Write("Invalid Ids. Please ensure that you choose from the cards you own.");
-                _textbox.Write();
-                TradeCards(cards);
-            }
+        private ValidationResult<List<Card>> ValidateCardTrade(List<Card> cards, string response)
+        {
+            var responseValidation = new ResponseValidationBuilder<List<Card>, int>()
+                .Parameter(response)
+                .Parameter(cards)
+                .MatchBuilder(GetIntegerMatches)
+                .TestObjectBuilder((matches, validationParameter)
+                    => cards.Where(c => matches.Contains(c.Id)).ToList())
+                .ErrorChecks(
+                    Check.ThreeSelectedFromOwnCards,
+                    Check.ValidSet)
+                .Build();
 
-            var selectedCards = cards.Where(c => selectedIds.Contains(c.Id)).ToList();
-            var distinctCardTypes = selectedCards.Select(c => c.CardType).Distinct();
-            var containsWildCard = distinctCardTypes.Contains(CardType.Wild);
-
-            // invalid set
-            var isValidSet = containsWildCard || distinctCardTypes.Count() == 1 || distinctCardTypes.Count() == 3;
-            if (!isValidSet)
-            {
-                _textbox.Write("You have not selected a valid set. Try again.");
-                _textbox.Write();
-                TradeCards(cards);
-            }
-
-            return selectedCards;
+            return responseValidation.CheckErrors();
         }
 
         public void PrepareUiForPlayer(Player player)
@@ -630,6 +631,15 @@ namespace Risk
         {
             _textbox.Clear();
             _textbox.Write($"{currentPlayer} wins!!!".ToUpper());
+            _textbox.Write();
+        }
+
+        public void DisplayArmyIncome(int fromCountries, int fromContinents, int fromCards)
+        {
+            _textbox.Write("Army Income:");
+            _textbox.Write($"{fromCountries} from country occupation");
+            _textbox.Write($"{fromContinents} from continent occupation");
+            _textbox.Write($"{fromCards} from cards");
             _textbox.Write();
         }
     }

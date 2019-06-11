@@ -22,5 +22,6 @@ namespace Risk
         Deployment GetFortificationParameters(Player player, CountryInfo[] countries);
         void ManageBattleVictory(Player occupier);
         void AnnounceWinner(Player currentPlayer);
+        void DisplayArmyIncome(int fromCountries, int fromContinents, int fromCards);
     }
 }

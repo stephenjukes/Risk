@@ -16,7 +16,7 @@ namespace Risk
         public string[] UnattachedNeighbourNames { get; }
         public List<CountryInfo> Neighbours { get; } = new List<CountryInfo>();
         public Player Occupier { get; set; }
-        public int Armies { get; set; }
+        public int Armies { get; set; } = 1;
 
         public CountryInfo() { }
 

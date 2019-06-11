@@ -17,6 +17,7 @@ namespace Risk
         public CountryInfo[] _countries;
         public Deployment _previousDeployment;
         public int _armiesToDistribute { get; set; }
+        public List<Card> _cards { get; set; }
 
 
         public ValidationResult<TestObject> CheckErrors()

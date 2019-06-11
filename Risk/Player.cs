@@ -10,6 +10,7 @@ namespace Risk
         public string Color { get; set; }
         public bool IsActive { get; set; } = true;
         public List<Card> Cards { get; set; } = new List<Card>();
+        public int OpeningIncome { get; set; }
         public int CardSetIncome { get; set; } = 2;
         public bool hasEarnedCard { get; set; }
 
