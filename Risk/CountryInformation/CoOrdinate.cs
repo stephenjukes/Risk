@@ -6,8 +6,8 @@ namespace Risk
 {
     class CoOrdinate
     {
-        public int Row { get; }
-        public int Column { get; }
+        public int Row { get; set; }
+        public int Column { get; set; }
 
         public CoOrdinate() { }
 

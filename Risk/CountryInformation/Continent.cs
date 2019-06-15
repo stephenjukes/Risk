@@ -6,17 +6,25 @@ namespace Risk
 {
     class Continent
     {
-        public string Name { get; }
-        public int ArmyProvisionForMonpoly { get; }
-        public int Size { get; }
+        public string Name { get; set; }
+        public string Color { get; set; }
+        public int ArmyProvisionForMonpoly { get; set; }
+        public int Size { get; set; }
 
-        public Continent(string name, int armyProvisionForMonopoly) : this(name, armyProvisionForMonopoly, 0) { }
+        public Continent() { }
 
-        public Continent(string name, int armyProvisionForMonopoly, int size)
+        public Continent(string name, string color, int armyProvisionForMonopoly)
         {
             Name = name;
+            Color = color;
             ArmyProvisionForMonpoly = armyProvisionForMonopoly;
-            Size = size;          
         }
+
+        //public Continent(string name, int armyProvisionForMonopoly, int size)
+        //{
+        //    Name = name;
+        //    ArmyProvisionForMonpoly = armyProvisionForMonopoly;
+        //    Size = size;          
+        //}
     }
 }

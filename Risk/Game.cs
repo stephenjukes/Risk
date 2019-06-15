@@ -238,7 +238,13 @@ namespace Risk
         {
             _continents = _countries
                 .GroupBy(country => country.Continent)
-                .Select(group => new Continent(group.Key.Name, group.First().Continent.ArmyProvisionForMonpoly,  group.Count()));
+                .Select(group => new Continent
+                    {
+                        Name = group.Key.Name,
+                        Color = group.First().Continent.Color,
+                        ArmyProvisionForMonpoly = group.First().Continent.ArmyProvisionForMonpoly,
+                        Size = group.Count()
+                    });
         }
 
         private int DefineArmyIncome(Player player)

@@ -10,12 +10,12 @@ namespace Risk
             //var textBox = new TextBox(new StateSpace(new CoOrdinate(10, 10), new CoOrdinate(20, 20)));
             //textBox.Write("The quick brown\nfox jumps over the lazy dog");
 
-            var northAmerica = new Continent("North America", 5);
-            var southAmerica = new Continent("South America", 2);
-            var europe = new Continent("Europe", 5);
-            var africa = new Continent("Africa", 3);
-            var asia = new Continent("Asia", 7);
-            var oceania = new Continent("Oceania", 2);
+            var northAmerica = new Continent("North America", "DarkGray", 5);
+            var southAmerica = new Continent("South America", "Gray", 2);
+            var europe = new Continent("Europe", "Gray", 5);
+            var africa = new Continent("Africa", "DarkGray", 3);
+            var asia = new Continent("Asia", "DarkGray", 7);
+            var oceania = new Continent("Oceania", "Gray", 2);
 
             var countries = new CountryInfo[]
             {
@@ -91,10 +91,21 @@ namespace Risk
             // DONE: cards: correct number but incorrect ids shows 'incorrect number of parameters provided'
             // DONE: show how army income is calculated at the beginning of each turn.
             // DONE: player should not be allowed to quit trading cards if they have 5 cards
-            // add remote neighbour links
-            // ~~~ amend to find 'y' and 'n' with regex (to handle approximate responses)
             // DONE: ensure that all countries start with 1 army
             // DONE: cards are not distributed randomly
+
+            // v2.
+            // Links
+                // Ensure North West Territory - Greenland link is shown
+                // Link independently of country formation so links are not duplicated
+                // Handle how Alaska and Kamchatka are linked (with a bool?)
+                // Refactor RenderLinks method
+            // Add country transposing functionality
+            // ~~~ amend to find 'y' and 'n' with regex (to handle approximate responses)
+            // Ensure that no two players have the same name --or-- introduce unique player Ids
+            // split ConsoleUserInterface into partial classes
+            // have the ui ask how many players
+            
         }
     }
 }

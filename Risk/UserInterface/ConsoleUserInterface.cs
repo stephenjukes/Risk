@@ -10,7 +10,6 @@ namespace Risk
     class ConsoleUserInterface : IUserInterface
     {
         public TextBox _textbox { get; }
-        private ConsoleColor _borderColor = ConsoleColor.Gray;
         private ConsoleColor[] _consoleColors = new ConsoleColor[]
         {
             ConsoleColor.Blue,
@@ -52,8 +51,50 @@ namespace Risk
             Console.Clear();
 
             foreach (var country in countries)
+            {               
+                RenderCountry(country);
+                RenderLinksToRemoteNeighbours(country, countries);
+            }
+        }
+
+        private void RenderLinksToRemoteNeighbours(CountryInfo country, CountryInfo[] countries)
+        {
+            var remoteNeighbours = countries.Where(c => country.UnattachedNeighbourNames.Contains(c.Name));
+            Console.ForegroundColor = ConsoleColor.Gray;
+
+            foreach (var neighbour in remoteNeighbours)
             {
-                RenderCountry(country);               
+                var links = new Link[] 
+                {   new NorthLink(country, neighbour),
+                    new SouthLink(country, neighbour),
+                    new EastLink(country, neighbour),
+                    new WestLink(country, neighbour)
+                };
+
+                var link = links.Where(l => l.IsThisDirection()).First();
+                
+                if (link.Orientation == LinkType.Horizontal)
+                    RenderHorizontalLink(link);
+                else
+                    RenderVerticalLink(link);
+            }
+        }
+
+        private void RenderHorizontalLink(Link link)
+        {
+            for (var i = 0; i < link.Displacement; i++)
+            {
+                Console.SetCursorPosition(link.Node.Column + i, link.Node.Row);
+                Console.Write('_');
+            }
+        }
+
+        private void RenderVerticalLink(Link link)
+        {
+            for (var i = 0; i < link.Displacement; i++)
+            {
+                Console.SetCursorPosition(link.Node.Column, link.Node.Row + i);
+                Console.Write('|');
             }
         }
 
@@ -68,7 +109,8 @@ namespace Risk
             var horizontalBorder = String.Join("", new char[width].Select(ch => marker));
             var internalRow = String.Join("", new char[width].Select((ch, i) => i == 0 || i == width - 1 ? marker : ' '));
 
-            Console.ForegroundColor = _borderColor;
+            //Console.ForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), country.Continent.Color);
+            Console.ForegroundColor = ConsoleColor.Gray;
 
             // Horizontal borders
             Console.SetCursorPosition(start.Column, start.Row);
