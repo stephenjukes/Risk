@@ -7,13 +7,11 @@ namespace Risk
     class ArtilleryCard : Card
     {
         public override CardType CardType { get; } = CardType.Artillery;
-        public override int Id { get; }
-        public override string CountryName { get; }
+        public override Country CountryName { get; }
         public override char Icon { get; } = '\u265c';
 
-        public ArtilleryCard(int id, string countryName)
+        public ArtilleryCard(Country countryName)
         {
-            Id = id;
             CountryName = countryName;
         }
     }

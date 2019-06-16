@@ -8,12 +8,11 @@ namespace Risk
     {
         public override CardType CardType { get; } = CardType.Wild;
         public override int Id { get; }
-        public override string CountryName { get; }
+        public override Country CountryName { get; }
         public override char Icon { get; } = '*';
 
-        public WildCard(int id, string countryName)
+        public WildCard(Country countryName)
         {
-            Id = id;
             CountryName = countryName;
         }
     }

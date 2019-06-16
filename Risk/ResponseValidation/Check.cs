@@ -17,7 +17,7 @@ namespace Risk
 
         public static string SufficientArmies(ValidationParameter<Deployment> p)
         {
-            var isDistribution = p.Object.From.Name == null;
+            var isDistribution = p.Object.From.Name == 0;
             var areSufficientArmies = isDistribution ? p.Object.Armies <= p.Object.From.Armies : p.Object.Armies < p.Object.From.Armies;
             var error = "Insufficient armies to repeat previous attack parameters.";
 

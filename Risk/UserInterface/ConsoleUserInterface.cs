@@ -35,54 +35,81 @@ namespace Risk
             return new Player(name, color);
         }
 
-        public void Render(CountryInfo[] countries)
+        public void Render(Dictionary<Country, CountryInfo> countries, IEnumerable<Link> links)
         {
             //if (_gameQuality == GameQuality.Optimised)
             //    RenderOptimised();
             //else
             //    RenderDegraded();
-            RenderOptimised(countries);
+            RenderOptimised(countries, links);
         }
 
-        public void RenderOptimised(CountryInfo[] countries)
+        public void RenderOptimised(Dictionary<Country, CountryInfo> countries, IEnumerable<Link> links)
         {
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
             Console.SetWindowPosition(0, 0);
             Console.Clear();
 
+            foreach (var link in links)
+            {
+                var link1 = link;
+                var link2 = new Link(link.Neighbour, link.Country, link.LinkTypes);
+
+                RenderLinkToRemoteNeighbour(link);
+                RenderLinkToRemoteNeighbour(link2);
+            }
+
             foreach (var country in countries)
             {               
-                RenderCountry(country);
-                RenderLinksToRemoteNeighbours(country, countries);
+                RenderCountry(country.Value);               
             }
         }
 
-        private void RenderLinksToRemoteNeighbours(CountryInfo country, CountryInfo[] countries)
+        private void RenderLinkToRemoteNeighbour(Link link)
+
         {
-            var remoteNeighbours = countries.Where(c => country.UnattachedNeighbourNames.Contains(c.Name));
-            Console.ForegroundColor = ConsoleColor.Gray;
+            var links = new Link[]
+            {   new NorthLink(link.Country, link.Neighbour, link.LinkTypes),
+                new SouthLink(link.Country, link.Neighbour, link.LinkTypes),
+                new EastLink(link.Country, link.Neighbour, link.LinkTypes),
+                new WestLink(link.Country, link.Neighbour, link.LinkTypes)
+            };
 
-            foreach (var neighbour in remoteNeighbours)
-            {
-                var links = new Link[] 
-                {   new NorthLink(country, neighbour),
-                    new SouthLink(country, neighbour),
-                    new EastLink(country, neighbour),
-                    new WestLink(country, neighbour)
-                };
+            var correctLink = links.Where(l => l.IsThisDirection()).First();
 
-                var link = links.Where(l => l.IsThisDirection()).First();
-                
-                if (link.Orientation == LinkType.Horizontal)
-                    RenderHorizontalLink(link);
-                else
-                    RenderVerticalLink(link);
-            }
+            if (correctLink.Orientation == LinkType.Horizontal)
+                RenderHorizontalLink(correctLink);
+            else
+                RenderVerticalLink(correctLink);
         }
+
+        //private void RenderLinksToRemoteNeighbours(CountryInfo country)
+        //{
+        //    //var remoteNeighbours = countries.Where(c => country.UnattachedNeighbourNames.Contains(c.Value.Name));
+        //    Console.ForegroundColor = ConsoleColor.Gray;
+
+        //    foreach (var neighbour in country.RemoteNeighbours)
+        //    {
+        //        var links = new Link[]
+        //        {   new NorthLink(country, neighbour),
+        //            new SouthLink(country, neighbour),
+        //            new EastLink(country, neighbour),
+        //            new WestLink(country, neighbour)
+        //        };
+
+        //        var link = links.Where(l => l.IsThisDirection()).First();
+
+        //        if (link.Orientation == LinkType.Horizontal)
+        //            RenderHorizontalLink(link);
+        //        else
+        //            RenderVerticalLink(link);
+        //    }
+        //}
 
         private void RenderHorizontalLink(Link link)
         {
-            for (var i = 0; i < link.Displacement; i++)
+            var step = link.Displacement / Math.Abs(link.Displacement);
+            for (var i = 0; i != link.Displacement; i += step)
             {
                 Console.SetCursorPosition(link.Node.Column + i, link.Node.Row);
                 Console.Write('_');
@@ -91,7 +118,8 @@ namespace Risk
 
         private void RenderVerticalLink(Link link)
         {
-            for (var i = 0; i < link.Displacement; i++)
+            var step = link.Displacement / Math.Abs(link.Displacement);
+            for (var i = 0; i != link.Displacement; i += step)
             {
                 Console.SetCursorPosition(link.Node.Column, link.Node.Row + i);
                 Console.Write('|');
@@ -137,8 +165,8 @@ namespace Risk
             var width = end.Column - start.Column + 1;
             var height = end.Row - start.Row;
 
-            var infoComponents = country.Name.Split(' ').ToList();
-            infoComponents[0] = $"{country.Id}. {infoComponents[0]}";
+            var infoComponents = Regex.Split(country.Name.ToString(), @"(?<!^)(?=[A-Z])").ToList(); // Regex splits by capital letter
+            infoComponents[0] = $"{(int)country.Name}. {infoComponents[0]}";
             infoComponents.Add($"{'\u2694'} {country.Armies.ToString().PadLeft(2, '0')}");
 
             Console.ForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), color);
@@ -158,7 +186,7 @@ namespace Risk
             country.StateSpace.ArmyPosition = new CoOrdinate(Console.CursorTop, informationStart.Column + 2);
         }
 
-        public List<Deployment> DistributeArmies(Player player, CountryInfo[] countries, int armies)
+        public List<Deployment> DistributeArmies(Player player, Dictionary<Country, CountryInfo> countries, int armies)
         {
             var remainingArmies = armies;
             var armyDistributions = new List<Deployment>();
@@ -186,7 +214,7 @@ namespace Risk
             return armyDistributions;
         }
 
-        private ValidationResult<Deployment> ValidateDistribution(string response, int remainingArmies, Player player, CountryInfo[] countries)
+        private ValidationResult<Deployment> ValidateDistribution(string response, int remainingArmies, Player player, Dictionary<Country, CountryInfo> countries)
         {
             var responseValidation = new ResponseValidationBuilder<Deployment, int>()
                     .Parameter(response)
@@ -359,7 +387,7 @@ namespace Risk
             Console.ForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), player.Color);
         }
 
-        public Deployment GetAttackParameters(Player player, CountryInfo[] countries, Deployment previousAttackParameters)
+        public Deployment GetAttackParameters(Player player, Dictionary<Country, CountryInfo> countries, Deployment previousAttackParameters)
         {
             ValidationResult<Deployment> nextAttackParameters = null;
 
@@ -412,7 +440,7 @@ namespace Risk
         }
 
         // TODO: Should this be combined with GetAttackParameters?
-        public Deployment GetFortificationParameters(Player player, CountryInfo[] countries)
+        public Deployment GetFortificationParameters(Player player, Dictionary<Country, CountryInfo> countries)
         {
             ValidationResult<Deployment> fortifcation;
             while (true)
@@ -440,7 +468,7 @@ namespace Risk
             }         
         }
 
-        private ValidationResult<Deployment> ValidateFortificationParameters(Player player, CountryInfo[] countries, string response)
+        private ValidationResult<Deployment> ValidateFortificationParameters(Player player, Dictionary<Country, CountryInfo> countries, string response)
         {
             var responseValidation = new ResponseValidationBuilder<Deployment, int>()
                 .Parameter(response)
@@ -614,7 +642,7 @@ namespace Risk
             Array.Reverse(dice);
         }
 
-        private ValidationResult<Deployment> ValidateNewAttackParameters(Player player, CountryInfo[] countries, string response)
+        private ValidationResult<Deployment> ValidateNewAttackParameters(Player player, Dictionary<Country, CountryInfo> countries, string response)
         {
             var responseValidation = new ResponseValidationBuilder<Deployment, int>()
                 .Parameter(response)
@@ -636,11 +664,11 @@ namespace Risk
         private Deployment CreateDeployment(int[] matches, ValidationParameter<Deployment> validationParameter)
         {
             return new Deployment
-                {
-                    Armies = matches[0],
-                    From = validationParameter.Countries.Where(c => c.Id == matches[1]).FirstOrDefault(),
-                    To = validationParameter.Countries.Where(c => c.Id == matches[2]).FirstOrDefault()
-                };
+            {
+                Armies = matches[0],
+                From = validationParameter.Countries[(Country)matches[1]],
+                To = validationParameter.Countries[(Country)matches[2]]
+            };
         }
 
         private Deployment CreateDistribution(int[] matches, ValidationParameter<Deployment> validationParameter)
@@ -652,7 +680,7 @@ namespace Risk
                 {
                     Armies = validationParameter.ArmiesToDistribute
                 },
-                To = validationParameter.Countries.Where(c => c.Id == matches[1]).FirstOrDefault()
+                To = validationParameter.Countries[(Country)matches[1]]
             };
         }
 

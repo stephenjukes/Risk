@@ -9,24 +9,20 @@ namespace Risk
 {
     class CountryInfo
     {
-        public int Id { get; }
-        public string Name { get; }
+        public Country Name { get; set; }
         public StateSpace StateSpace { get; }
         public Continent Continent { get; }
-        public string[] UnattachedNeighbourNames { get; }
+        public List<CountryInfo> RemoteNeighbours { get; } = new List<CountryInfo>();
         public List<CountryInfo> Neighbours { get; } = new List<CountryInfo>();
         public Player Occupier { get; set; }
         public int Armies { get; set; } = 1;
 
         public CountryInfo() { }
 
-        public CountryInfo(int id, string name, StateSpace stateSpace, Continent continent, params string[] unattachedNeighbours)
+        public CountryInfo(StateSpace stateSpace, Continent continent)
         {
-            Id = id;
-            Name = name;
             StateSpace = stateSpace;
             Continent = continent;
-            UnattachedNeighbourNames = unattachedNeighbours;
         }
     }
 }

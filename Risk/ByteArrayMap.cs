@@ -4,12 +4,12 @@ using System.Text;
 
 namespace Risk
 {
-    class Map
+    class ByteArrayMap
     {
         public char[,] StringArrayImage { get; set; }
         char _marker;
 
-        public Map(byte[,] worldByteArray, char marker)
+        public ByteArrayMap(byte[,] worldByteArray, char marker)
         {
             _marker = marker;
             StringArrayImage = CreateStringArrayImage(worldByteArray);
