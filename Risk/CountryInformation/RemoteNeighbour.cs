@@ -7,6 +7,6 @@ namespace Risk
     class RemoteNeighbour : CountryInfo
     {
         public RemoteNeighbour() { }
-        public RemoteNeighbour(StateSpace stateSpace, Continent continent) : base(stateSpace, continent) { }
+        public RemoteNeighbour(CountryName name, StateSpace stateSpace, Continent continent) : base(name, stateSpace, continent) { }
     }
 }

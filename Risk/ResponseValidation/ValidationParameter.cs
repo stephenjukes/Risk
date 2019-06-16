@@ -8,7 +8,7 @@ namespace Risk
     {
         public TestObject Object { get; set; }
         public Player Player { get; set; }
-        public Dictionary<Country, CountryInfo> Countries { get; set; }
+        public CountryInfo[] Countries { get; set; }
         public Deployment PreviousDeployment { get; set; }
         public int ArmiesToDistribute { get; set; }
     }

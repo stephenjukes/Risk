@@ -11,7 +11,7 @@ namespace Risk
     {
         private Player[] _players;
         private IUserInterface _ui;       
-        private Dictionary<Country, CountryInfo> _countries;
+        private CountryInfo[] _countries;
         private IEnumerable<Link> _links;
         private List<Card> _cards;
         private Random _random = new Random();
@@ -19,11 +19,11 @@ namespace Risk
         private Dictionary<int, int> armiesOnSetup = new Dictionary<int, int>() { {2, 40}, {3, 35}, {4, 30}, {5, 25}, {6, 20} };
         private bool gameActive = true;
 
-        public Game(int numberOfPlayers, Dictionary<Country, CountryInfo> countries, IEnumerable<Link> links, IUserInterface ui)
+        public Game(int numberOfPlayers, Map map, IUserInterface ui)
         {
             _players = new Player[numberOfPlayers];
-            _countries = SetUpCountries(countries);
-            _links = links;
+            _countries = map.Countries;
+            _links = map.Links;
             _ui = ui;
         }
 
@@ -60,21 +60,10 @@ namespace Risk
             SetUpArmies();
         }
 
-        private Dictionary<Country, CountryInfo> SetUpCountries(Dictionary<Country, CountryInfo> countries)
-        {
-            foreach(var country in countries)
-            {
-                country.Value.Name = country.Key;
-            }
-
-            return countries;
-        }
-
-
         private void DetermineOpeningIncome()
         {
             var armiesBeforeCountryAllocation = armiesOnSetup[_players.Length];
-            var countriesByPlayer = _countries.GroupBy(c => c.Value.Occupier);
+            var countriesByPlayer = _countries.GroupBy(c => c.Occupier);
 
             foreach (var group in countriesByPlayer)
             {
@@ -154,7 +143,7 @@ namespace Risk
             previousAttackParameters = null;
             attackParameters.From.Occupier.hasEarnedCard = true;
 
-            var hasEliminatedPlayer = !_countries.Any(c => c.Value.Occupier.Name == defender.Name);
+            var hasEliminatedPlayer = !_countries.Any(c => c.Occupier.Name == defender.Name);
             if (hasEliminatedPlayer)
             {
                 ManagePlayerElimination(invader, defender);             
@@ -240,7 +229,7 @@ namespace Risk
                 .Select((country, index) =>     // TODO: redo without reflection.
                     {
                         var cardType = cardTypes[index % cardTypes.Length];
-                        var card = (Card)Activator.CreateInstance(cardType, country.Value.Name);
+                        var card = (Card)Activator.CreateInstance(cardType, country.Name);
                         return card;
                     })
                 .OrderBy(c => _random.Next())   // shuffles card types
@@ -250,12 +239,12 @@ namespace Risk
         private void SetUpContinents()
         {
             _continents = _countries
-                .GroupBy(country => country.Value.Continent)
+                .GroupBy(country => country.Continent)
                 .Select(group => new Continent
                     {
                         Name = group.Key.Name,
-                        Color = group.First().Value.Continent.Color,
-                        ArmyProvisionForMonpoly = group.First().Value.Continent.ArmyProvisionForMonpoly,
+                        Color = group.First().Continent.Color,
+                        ArmyProvisionForMonpoly = group.First().Continent.ArmyProvisionForMonpoly,
                         Size = group.Count()
                     });
         }
@@ -263,8 +252,8 @@ namespace Risk
         private int DefineArmyIncome(Player player)
         {
             var occupied = _countries
-                .Where(c => c.Value.Occupier.Name == player.Name)
-                .Select(c => c.Value);
+                .Where(c => c.Occupier.Name == player.Name)
+                .Select(c => c);
             
             var fromCountries = DefineIncomeByCountryOccupation(occupied.Count());
             var fromContinents = DefineIncomeByContinentOccupation(occupied);
@@ -289,11 +278,11 @@ namespace Risk
             _cards.AddRange(tradedCards);
 
             var tradedCountries = tradedCards.Select(c => c.CountryName);
-            var occupied = _countries.Where(c => tradedCountries.Contains(c.Value.Name) && c.Value.Occupier.Name == player.Name);
+            var occupied = _countries.Where(c => tradedCountries.Contains(c.Name) && c.Occupier.Name == player.Name);
 
             foreach(var country in occupied)
             {
-                IncrementArmies(country.Value, 2);
+                IncrementArmies(country, 2);
             }
 
             // TODO: Try to amend so that cards are incremented after return (allowing the initial SetIncome to be set at 4 instead of 2)
@@ -355,8 +344,11 @@ namespace Risk
             AddRemoteNeighbours();
 
             foreach (var country in _countries)
-            {              
-                AddNeighbours(country.Value);
+            {
+                var remoteNeighbours = country.RemoteNeighbours;
+                country.Neighbours.AddRange(remoteNeighbours);
+
+                AddNeighbours(country);
             }           
         }
 
@@ -380,8 +372,11 @@ namespace Risk
         {
             foreach (var link in _links)
             {
-                _countries[link.Country.Name].RemoteNeighbours.Add(link.Neighbour);
-                _countries[link.Neighbour.Name].RemoteNeighbours.Add(link.Country);  
+                var country = Array.Find(_countries, c => c.Name == link.Country.Name);  
+                var neighbour = Array.Find(_countries, c => c.Name == link.Neighbour.Name);
+
+                country.RemoteNeighbours.Add(neighbour);
+                neighbour.RemoteNeighbours.Add(country);
             }
         }
 
@@ -389,21 +384,21 @@ namespace Risk
         {
             foreach (var potentialNeighbour in _countries)
             {
-                var WestCoastIsDistinctToEastCoast = potentialNeighbour.Value.StateSpace.TopLeft.Column > country.StateSpace.BottomRight.Column;
-                var EastCoastIsDistinctToWestCoast = potentialNeighbour.Value.StateSpace.BottomRight.Column < country.StateSpace.TopLeft.Column;
-                var NorthCoastDistinctToSouthCoast = potentialNeighbour.Value.StateSpace.BottomRight.Row < country.StateSpace.TopLeft.Row;
-                var SouthCoastDistinctToNorthCoast = potentialNeighbour.Value.StateSpace.TopLeft.Row > country.StateSpace.BottomRight.Row;
-                var NorthWestCornerIsDistinctToSouthEastCorner = potentialNeighbour.Value.StateSpace.TopLeft.Row == country.StateSpace.BottomRight.Row && potentialNeighbour.Value.StateSpace.TopLeft.Column == country.StateSpace.BottomRight.Column;
-                var SouthEastCornerIsDistinctToNorthWestCorner = potentialNeighbour.Value.StateSpace.BottomRight.Row == country.StateSpace.TopLeft.Row && potentialNeighbour.Value.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
-                var NorthEastCornerIsDistinctToSouthWestCorner = potentialNeighbour.Value.StateSpace.TopLeft.Row == country.StateSpace.BottomRight.Row && potentialNeighbour.Value.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
-                var SouthWestCornerIsDistinctToNorthEastCorner = potentialNeighbour.Value.StateSpace.BottomRight.Row == country.StateSpace.TopLeft.Row && potentialNeighbour.Value.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
+                var WestCoastIsDistinctToEastCoast = potentialNeighbour.StateSpace.TopLeft.Column > country.StateSpace.BottomRight.Column;
+                var EastCoastIsDistinctToWestCoast = potentialNeighbour.StateSpace.BottomRight.Column < country.StateSpace.TopLeft.Column;
+                var NorthCoastDistinctToSouthCoast = potentialNeighbour.StateSpace.BottomRight.Row < country.StateSpace.TopLeft.Row;
+                var SouthCoastDistinctToNorthCoast = potentialNeighbour.StateSpace.TopLeft.Row > country.StateSpace.BottomRight.Row;
+                var NorthWestCornerIsDistinctToSouthEastCorner = potentialNeighbour.StateSpace.TopLeft.Row == country.StateSpace.BottomRight.Row && potentialNeighbour.StateSpace.TopLeft.Column == country.StateSpace.BottomRight.Column;
+                var SouthEastCornerIsDistinctToNorthWestCorner = potentialNeighbour.StateSpace.BottomRight.Row == country.StateSpace.TopLeft.Row && potentialNeighbour.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
+                var NorthEastCornerIsDistinctToSouthWestCorner = potentialNeighbour.StateSpace.TopLeft.Row == country.StateSpace.BottomRight.Row && potentialNeighbour.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
+                var SouthWestCornerIsDistinctToNorthEastCorner = potentialNeighbour.StateSpace.BottomRight.Row == country.StateSpace.TopLeft.Row && potentialNeighbour.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
 
                 var countriesAreIsolated =
                     WestCoastIsDistinctToEastCoast || EastCoastIsDistinctToWestCoast || NorthCoastDistinctToSouthCoast || SouthCoastDistinctToNorthCoast ||
                     NorthWestCornerIsDistinctToSouthEastCorner || SouthEastCornerIsDistinctToNorthWestCorner || NorthEastCornerIsDistinctToSouthWestCorner || SouthWestCornerIsDistinctToNorthEastCorner ||
-                    country.Name == potentialNeighbour.Value.Name;
+                    country.Name == potentialNeighbour.Name;
 
-                if (!countriesAreIsolated) country.Neighbours.Add(potentialNeighbour.Value);
+                if (!countriesAreIsolated) country.Neighbours.Add(potentialNeighbour);
             }
 
             //if (country.Neighbours.Count == 0)
@@ -428,7 +423,7 @@ namespace Risk
             foreach(var country in shuffledCountries)
             {
                 var playerNumber = i % _players.Length;
-                country.Value.Occupier = _players[playerNumber];
+                country.Occupier = _players[playerNumber];
                 i++;
             }
         }
@@ -462,7 +457,7 @@ namespace Risk
 
             foreach (var distribution in armiesToDistribute)
             {
-                var targetCountry = _countries[distribution.To.Name];
+                var targetCountry = Array.Find(_countries, c => c.Name == distribution.To.Name);
                 targetCountry.Armies += distribution.Armies;
             }
         }

@@ -12,7 +12,7 @@ namespace Risk
         public Func<TMatch[], ValidationParameter<TestObject>, TestObject> _testObjectBuilder { get; set; }
         public Func<ValidationParameter<TestObject>, string>[] _errorChecks { get; set; }
         public Player _player { get; set; }
-        public Dictionary<Country, CountryInfo> _countries { get; set; }
+        public CountryInfo[] _countries { get; set; }
         public Deployment _previousDeployment { get; set; }
         public int _armiesToDistribute { get; set; }    // Can't we use Armies from 'From'?
         public List<Card> _cards { get; set; }

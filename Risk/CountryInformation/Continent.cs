@@ -6,14 +6,14 @@ namespace Risk
 {
     class Continent
     {
-        public string Name { get; set; }
+        public ContinentName Name { get; set; }
         public string Color { get; set; }
         public int ArmyProvisionForMonpoly { get; set; }
         public int Size { get; set; }
 
         public Continent() { }
 
-        public Continent(string name, string color, int armyProvisionForMonopoly)
+        public Continent(ContinentName name, string color, int armyProvisionForMonopoly)
         {
             Name = name;
             Color = color;

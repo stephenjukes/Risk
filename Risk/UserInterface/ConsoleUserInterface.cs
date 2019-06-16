@@ -35,7 +35,7 @@ namespace Risk
             return new Player(name, color);
         }
 
-        public void Render(Dictionary<Country, CountryInfo> countries, IEnumerable<Link> links)
+        public void Render(CountryInfo[] countries, IEnumerable<Link> links)
         {
             //if (_gameQuality == GameQuality.Optimised)
             //    RenderOptimised();
@@ -44,7 +44,7 @@ namespace Risk
             RenderOptimised(countries, links);
         }
 
-        public void RenderOptimised(Dictionary<Country, CountryInfo> countries, IEnumerable<Link> links)
+        public void RenderOptimised(CountryInfo[] countries, IEnumerable<Link> links)
         {
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
             Console.SetWindowPosition(0, 0);
@@ -54,11 +54,11 @@ namespace Risk
             RenderCountries(countries);
         }
 
-        private void RenderCountries(Dictionary<Country, CountryInfo> countries)
+        private void RenderCountries(CountryInfo[] countries)
         {
             foreach (var country in countries)
             {
-                RenderCountry(country.Value);
+                RenderCountry(country);
             }
         }
 
@@ -83,12 +83,14 @@ namespace Risk
                 new WestLink(link.Country, link.Neighbour, link.LinkTypes)
             };
 
-            var correctLink = links.Where(l => l.IsThisDirection()).First();
+            var requiredLink = links
+                .Where(l => l.IsRequiredDirection()).First()
+                .EvaluateParameters();
 
-            if (correctLink.Orientation == LinkType.Horizontal)
-                RenderHorizontalLink(correctLink);
+            if (requiredLink is HorizontalLink)
+                RenderHorizontalLink(requiredLink);
             else
-                RenderVerticalLink(correctLink);
+                RenderVerticalLink(requiredLink);
         }
 
         private void RenderHorizontalLink(Link link)
@@ -171,7 +173,7 @@ namespace Risk
             country.StateSpace.ArmyPosition = new CoOrdinate(Console.CursorTop, informationStart.Column + 2);
         }
 
-        public List<Deployment> DistributeArmies(Player player, Dictionary<Country, CountryInfo> countries, int armies)
+        public List<Deployment> DistributeArmies(Player player, CountryInfo[] countries, int armies)
         {
             var remainingArmies = armies;
             var armyDistributions = new List<Deployment>();
@@ -199,7 +201,7 @@ namespace Risk
             return armyDistributions;
         }
 
-        private ValidationResult<Deployment> ValidateDistribution(string response, int remainingArmies, Player player, Dictionary<Country, CountryInfo> countries)
+        private ValidationResult<Deployment> ValidateDistribution(string response, int remainingArmies, Player player, CountryInfo[] countries)
         {
             var responseValidation = new ResponseValidationBuilder<Deployment, int>()
                     .Parameter(response)
@@ -372,7 +374,7 @@ namespace Risk
             Console.ForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), player.Color);
         }
 
-        public Deployment GetAttackParameters(Player player, Dictionary<Country, CountryInfo> countries, Deployment previousAttackParameters)
+        public Deployment GetAttackParameters(Player player, CountryInfo[] countries, Deployment previousAttackParameters)
         {
             ValidationResult<Deployment> nextAttackParameters = null;
 
@@ -425,7 +427,7 @@ namespace Risk
         }
 
         // TODO: Should this be combined with GetAttackParameters?
-        public Deployment GetFortificationParameters(Player player, Dictionary<Country, CountryInfo> countries)
+        public Deployment GetFortificationParameters(Player player, CountryInfo[] countries)
         {
             ValidationResult<Deployment> fortifcation;
             while (true)
@@ -453,7 +455,7 @@ namespace Risk
             }         
         }
 
-        private ValidationResult<Deployment> ValidateFortificationParameters(Player player, Dictionary<Country, CountryInfo> countries, string response)
+        private ValidationResult<Deployment> ValidateFortificationParameters(Player player, CountryInfo[] countries, string response)
         {
             var responseValidation = new ResponseValidationBuilder<Deployment, int>()
                 .Parameter(response)
@@ -627,7 +629,7 @@ namespace Risk
             Array.Reverse(dice);
         }
 
-        private ValidationResult<Deployment> ValidateNewAttackParameters(Player player, Dictionary<Country, CountryInfo> countries, string response)
+        private ValidationResult<Deployment> ValidateNewAttackParameters(Player player, CountryInfo[] countries, string response)
         {
             var responseValidation = new ResponseValidationBuilder<Deployment, int>()
                 .Parameter(response)
@@ -651,8 +653,8 @@ namespace Risk
             return new Deployment
             {
                 Armies = matches[0],
-                From = validationParameter.Countries[(Country)matches[1]],
-                To = validationParameter.Countries[(Country)matches[2]]
+                From = Array.Find(validationParameter.Countries, c => c.Name == (CountryName)matches[1]),
+                To = Array.Find(validationParameter.Countries, c => c.Name == (CountryName)matches[2]),
             };
         }
 
@@ -665,7 +667,7 @@ namespace Risk
                 {
                     Armies = validationParameter.ArmiesToDistribute
                 },
-                To = validationParameter.Countries[(Country)matches[1]]
+                To = Array.Find(validationParameter.Countries, c => c.Name == (CountryName)matches[1])
             };
         }
 

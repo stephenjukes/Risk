@@ -9,7 +9,7 @@ namespace Risk
 {
     class CountryInfo
     {
-        public Country Name { get; set; }
+        public CountryName Name { get; set; }
         public StateSpace StateSpace { get; }
         public Continent Continent { get; }
         public List<CountryInfo> RemoteNeighbours { get; } = new List<CountryInfo>();
@@ -19,8 +19,9 @@ namespace Risk
 
         public CountryInfo() { }
 
-        public CountryInfo(StateSpace stateSpace, Continent continent)
+        public CountryInfo(CountryName name, StateSpace stateSpace, Continent continent)
         {
+            Name = name;
             StateSpace = stateSpace;
             Continent = continent;
         }

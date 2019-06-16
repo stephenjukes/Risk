@@ -14,7 +14,7 @@ namespace Risk
         public Func<ValidationParameter<TestObject>, string>[] _errorChecks;
 
         public Player _player;
-        public Dictionary<Country, CountryInfo> _countries;
+        public CountryInfo[] _countries;
         public Deployment _previousDeployment;
         public int _armiesToDistribute { get; set; }
         public List<Card> _cards { get; set; }
