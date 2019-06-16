@@ -50,23 +50,31 @@ namespace Risk
             Console.SetWindowPosition(0, 0);
             Console.Clear();
 
+            RenderLinks(links);
+            RenderCountries(countries);
+        }
+
+        private void RenderCountries(Dictionary<Country, CountryInfo> countries)
+        {
+            foreach (var country in countries)
+            {
+                RenderCountry(country.Value);
+            }
+        }
+
+        private void RenderLinks(IEnumerable<Link> links)
+        {
             foreach (var link in links)
             {
                 var link1 = link;
                 var link2 = new Link(link.Neighbour, link.Country, link.LinkTypes);
 
                 RenderLinkToRemoteNeighbour(link);
-                RenderLinkToRemoteNeighbour(link2);
-            }
-
-            foreach (var country in countries)
-            {               
-                RenderCountry(country.Value);               
+                RenderLinkToRemoteNeighbour(link2); // necessary for indirect links
             }
         }
 
         private void RenderLinkToRemoteNeighbour(Link link)
-
         {
             var links = new Link[]
             {   new NorthLink(link.Country, link.Neighbour, link.LinkTypes),
@@ -82,29 +90,6 @@ namespace Risk
             else
                 RenderVerticalLink(correctLink);
         }
-
-        //private void RenderLinksToRemoteNeighbours(CountryInfo country)
-        //{
-        //    //var remoteNeighbours = countries.Where(c => country.UnattachedNeighbourNames.Contains(c.Value.Name));
-        //    Console.ForegroundColor = ConsoleColor.Gray;
-
-        //    foreach (var neighbour in country.RemoteNeighbours)
-        //    {
-        //        var links = new Link[]
-        //        {   new NorthLink(country, neighbour),
-        //            new SouthLink(country, neighbour),
-        //            new EastLink(country, neighbour),
-        //            new WestLink(country, neighbour)
-        //        };
-
-        //        var link = links.Where(l => l.IsThisDirection()).First();
-
-        //        if (link.Orientation == LinkType.Horizontal)
-        //            RenderHorizontalLink(link);
-        //        else
-        //            RenderVerticalLink(link);
-        //    }
-        //}
 
         private void RenderHorizontalLink(Link link)
         {

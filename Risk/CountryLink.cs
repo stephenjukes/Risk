@@ -38,10 +38,11 @@ namespace Risk
         }
 
         protected LinkType GetLinkType(params LinkType[] requestedLinkTypes)
-        {
-            var foundLinkTypes = requestedLinkTypes.Where(l => LinkTypes.Contains(l)).FirstOrDefault();
-            return foundLinkTypes;
-        }
+            => requestedLinkTypes.Where(l => LinkTypes.Contains(l)).FirstOrDefault();
+
+
+        protected bool IsDirectLink()
+            => GetLinkType(LinkType.Indirect) != LinkType.Indirect;
     }
 
     class HorizontalLink : Link
@@ -65,12 +66,6 @@ namespace Risk
                 default:
                     return lowestNorthCoast / 2 + highestSouthCoast / 2;                    
             }
-        }
-
-        protected override int EvaluateDisplacement()
-        {
-            var isDirect = GetLinkType(LinkType.Indirect) != LinkType.Indirect;
-            return isDirect ? Neighbour.StateSpace.TopLeft.Column - Country.StateSpace.BottomRight.Column : 3;
         }
     }
 
@@ -111,16 +106,10 @@ namespace Risk
             => Country.StateSpace.TopLeft.Column > Neighbour.StateSpace.BottomRight.Column;
 
         protected override int EvaluateNodeColumn()
-        {
-            var isDirect = GetLinkType(LinkType.Indirect) != LinkType.Indirect;
-            return isDirect ? Country.StateSpace.TopLeft.Column - 1 : Country.StateSpace.BottomRight.Column + 1;
-        }
+            => IsDirectLink() ? Country.StateSpace.TopLeft.Column - 1 : Country.StateSpace.BottomRight.Column + 1;
 
         protected override int EvaluateDisplacement()
-        {
-            var isDirect = GetLinkType(LinkType.Indirect) != LinkType.Indirect;
-            return isDirect ? Neighbour.StateSpace.BottomRight.Column - Country.StateSpace.TopLeft.Column : 3;
-        }
+            => IsDirectLink() ? Neighbour.StateSpace.BottomRight.Column - Country.StateSpace.TopLeft.Column : 3;
     }
 
     class EastLink : HorizontalLink
@@ -133,16 +122,10 @@ namespace Risk
             => Country.StateSpace.BottomRight.Column < Neighbour.StateSpace.TopLeft.Column;
 
         protected override int EvaluateNodeColumn()
-        {
-            var isDirect = GetLinkType(LinkType.Indirect) != LinkType.Indirect;
-            return isDirect ? Country.StateSpace.BottomRight.Column + 1 : Country.StateSpace.TopLeft.Column - 1;
-        }
+            => IsDirectLink() ? Country.StateSpace.BottomRight.Column + 1 : Country.StateSpace.TopLeft.Column - 1;
 
         protected override int EvaluateDisplacement()
-        {
-            var isDirect = GetLinkType(LinkType.Indirect) != LinkType.Indirect;
-            return isDirect ? Neighbour.StateSpace.TopLeft.Column - Country.StateSpace.BottomRight.Column : -3;
-        }
+            => IsDirectLink() ? Neighbour.StateSpace.TopLeft.Column - Country.StateSpace.BottomRight.Column : -3;
     }
 
     class NorthLink : VerticalLink
