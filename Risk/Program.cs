@@ -13,7 +13,7 @@ namespace Risk
             var textBox = new TextBox(new StateSpace(new CoOrdinate(1, 190), new CoOrdinate(55, 240)));
             var userInterface = new ConsoleUserInterface(textBox);
 
-            var game = new Game(2, map, userInterface);
+            var game = new Game(map, userInterface);
             game.Run();           
         }
     }
@@ -59,9 +59,18 @@ namespace Risk
 // DONE: Complete Link parameters only after link selected
 // DONE: Store country, continent and link information in a Map class.
 
+// v3
+// DONE: have the ui ask how many players
+// DONE: Attach Egypt and Middle East
+// DONE: Card IDs showing as 00. Fix 
+// DONE: Showing 'Insufficient armies to repeat previous attack parameters' for simple army transfer.
+// DONE: If player gets a card set after eliminating an army, force / give chance to trade
+// DONE: Add notification that a player has been eliminated and that cards have been transferred across
+// DONE: Ensure that no two players have the same name --or-- introduce unique player Ids
 
+// v4
+// split ConsoleUserInterface into partial classes
+// Throw exceptions if Map data is not invalid
 // Add country transposing functionality
 // ~~~ amend to find 'y' and 'n' with regex (to handle approximate responses)
-// Ensure that no two players have the same name --or-- introduce unique player Ids
-// split ConsoleUserInterface into partial classes
-// have the ui ask how many players
+

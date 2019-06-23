@@ -19,7 +19,7 @@ namespace Risk
         {
             var isDistribution = p.Object.From.Name == 0;
             var areSufficientArmies = isDistribution ? p.Object.Armies <= p.Object.From.Armies : p.Object.Armies < p.Object.From.Armies;
-            var error = "Insufficient armies to repeat previous attack parameters.";
+            var error = "Insufficient armies for intended deployment.";
 
             return !areSufficientArmies ? error : null;
         }

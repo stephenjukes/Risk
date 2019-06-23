@@ -6,6 +6,7 @@ namespace Risk
 {
     class Player
     {
+        public int Id { get; }
         public string Name { get; set; }
         public string Color { get; set; }
         public bool IsActive { get; set; } = true;
@@ -16,8 +17,9 @@ namespace Risk
 
         public Player() { }
 
-        public Player(string name, string color)
+        public Player(int id, string name, string color)
         {
+            Id = id;
             Name = name;
             Color = color;
         }

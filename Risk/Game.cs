@@ -19,9 +19,8 @@ namespace Risk
         private Dictionary<int, int> armiesOnSetup = new Dictionary<int, int>() { {2, 40}, {3, 35}, {4, 30}, {5, 25}, {6, 20} };
         private bool gameActive = true;
 
-        public Game(int numberOfPlayers, Map map, IUserInterface ui)
+        public Game(Map map, IUserInterface ui)
         {
-            _players = new Player[numberOfPlayers];
             _countries = map.Countries;
             _links = map.Links;
             _ui = ui;
@@ -134,7 +133,7 @@ namespace Risk
         private void ManageBattleVictory(Deployment attackParameters, Deployment previousAttackParameters)
         {
             var invader = attackParameters.From.Occupier;
-            var defender = _players.Where(p => p.Name == attackParameters.To.Occupier.Name).First();    // prevents the defender from being changed during Army Transfer
+            var defender = Array.Find(_players, p => p.Id == attackParameters.To.Occupier.Id); // prevents the defender from being changed during Army Transfer  
 
             _ui.ManageBattleVictory(attackParameters.From.Occupier);
 
@@ -143,7 +142,7 @@ namespace Risk
             previousAttackParameters = null;
             attackParameters.From.Occupier.hasEarnedCard = true;
 
-            var hasEliminatedPlayer = !_countries.Any(c => c.Occupier.Name == defender.Name);
+            var hasEliminatedPlayer = !_countries.Any(c => c.Occupier.Id == defender.Id);
             if (hasEliminatedPlayer)
             {
                 ManagePlayerElimination(invader, defender);             
@@ -154,6 +153,9 @@ namespace Risk
         {
             defender.IsActive = false;
             invader.Cards.AddRange(defender.Cards);
+
+            _ui.ManagePlayerElimination(invader, defender);
+            ManageCards(invader);
 
             var activePlayers = _players.Where(p => p.IsActive).Count();
             if (activePlayers == 1)
@@ -222,15 +224,15 @@ namespace Risk
 
         private void SetUpCards()
         {
-            var cardTypes = new Type[] { typeof(InfantryCard), typeof(CavalryCard), typeof(ArtilleryCard) };
+            //var cardTypes = new Type[] { typeof(InfantryCard), typeof(CavalryCard), typeof(ArtilleryCard) };
+            var cardTypes = new CardType[] { CardType.Infantry, CardType.Cavalry, CardType.Artillery, CardType.Wild };
 
             _cards = _countries
                 .OrderBy(c => _random.Next())   // shuffles countries
-                .Select((country, index) =>     // TODO: redo without reflection.
+                .Select((country, index) =>
                     {
                         var cardType = cardTypes[index % cardTypes.Length];
-                        var card = (Card)Activator.CreateInstance(cardType, country.Name);
-                        return card;
+                        return new Card(cardType, country.Name);
                     })
                 .OrderBy(c => _random.Next())   // shuffles card types
                 .ToList();
@@ -252,7 +254,7 @@ namespace Risk
         private int DefineArmyIncome(Player player)
         {
             var occupied = _countries
-                .Where(c => c.Occupier.Name == player.Name)
+                .Where(c => c.Occupier.Id == player.Id)
                 .Select(c => c);
             
             var fromCountries = DefineIncomeByCountryOccupation(occupied.Count());
@@ -278,7 +280,7 @@ namespace Risk
             _cards.AddRange(tradedCards);
 
             var tradedCountries = tradedCards.Select(c => c.CountryName);
-            var occupied = _countries.Where(c => tradedCountries.Contains(c.Name) && c.Occupier.Name == player.Name);
+            var occupied = _countries.Where(c => tradedCountries.Contains(c.Name) && c.Occupier.Id == player.Id);
 
             foreach(var country in occupied)
             {
@@ -409,6 +411,8 @@ namespace Risk
 
         private void SetUpPlayers()
         {
+            _players = _ui.SetUpPlayers();
+
             for (var i = 0; i < _players.Length; i++)
             {
                 _players[i] = _ui.SetUpPlayer(i + 1);

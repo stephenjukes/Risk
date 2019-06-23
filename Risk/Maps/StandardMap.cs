@@ -87,6 +87,7 @@ namespace Risk
             new Enum[] {CountryName.SouthernEurope, CountryName.Egypt},
             new Enum[] {CountryName.SouthernEurope, CountryName.MiddleEast},
             new Enum[] {CountryName.EastAfrica, CountryName.Madagascar},
+            new Enum[] {CountryName.Egypt, CountryName.MiddleEast},
             new Enum[] {CountryName.SouthAfrica, CountryName.Madagascar},
             new Enum[] {CountryName.Kamchatka, CountryName.Japan},
             new Enum[] {CountryName.Mongolia, CountryName.Japan},

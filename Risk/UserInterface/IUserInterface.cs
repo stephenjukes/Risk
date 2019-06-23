@@ -9,6 +9,7 @@ namespace Risk
         // Remove when finished
         TextBox _textbox { get; }
 
+        Player[] SetUpPlayers();
         Player SetUpPlayer(int playerNumber);
         void Render(CountryInfo[] countries, IEnumerable<Link> links);
         List<Deployment> DistributeArmies(Player player, CountryInfo[] countries, int armies);
@@ -23,5 +24,6 @@ namespace Risk
         void ManageBattleVictory(Player occupier);
         void AnnounceWinner(Player currentPlayer);
         void DisplayArmyIncome(int fromCountries, int fromContinents, int fromCards);
+        void ManagePlayerElimination(Player invader, Player defender);
     }
 }

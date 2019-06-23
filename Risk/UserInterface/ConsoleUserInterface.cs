@@ -25,6 +25,21 @@ namespace Risk
             _textbox = textBox;
         }
 
+        public Player[] SetUpPlayers()
+        {
+            while(true)
+            {
+                Console.WriteLine("How many players?");
+                var response = Console.ReadLine();
+                int numberOfPlayers;
+
+                var responseIsNumber = int.TryParse(response, out numberOfPlayers);
+
+                if (responseIsNumber && numberOfPlayers <= 6)
+                    return new Player[numberOfPlayers];
+            }
+        }
+
         public Player SetUpPlayer(int playerNumber)
         {
             Console.WriteLine($"Player {playerNumber}, please enter your name:");
@@ -32,19 +47,10 @@ namespace Risk
             var name = Console.ReadLine();
             var color = _consoleColors[playerNumber - 1].ToString();
 
-            return new Player(name, color);
+            return new Player(playerNumber, name, color);
         }
 
         public void Render(CountryInfo[] countries, IEnumerable<Link> links)
-        {
-            //if (_gameQuality == GameQuality.Optimised)
-            //    RenderOptimised();
-            //else
-            //    RenderDegraded();
-            RenderOptimised(countries, links);
-        }
-
-        public void RenderOptimised(CountryInfo[] countries, IEnumerable<Link> links)
         {
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
             Console.SetWindowPosition(0, 0);
@@ -178,6 +184,7 @@ namespace Risk
             var remainingArmies = armies;
             var armyDistributions = new List<Deployment>();
             Console.ForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), player.Color);
+            //PrepareUiForPlayer(player);
 
             while (remainingArmies > 0)
             {
@@ -295,7 +302,7 @@ namespace Risk
 
             foreach (var card in cards)
             {
-                _textbox.Write($"{card.Id.ToString().PadLeft(2, '0')}\t{card.CardType.ToString().PadRight(9, ' ')}\t{card.CountryName}");
+                _textbox.Write($"{((int)card.CountryName).ToString().PadLeft(2, '0')}\t{card.CardType.ToString().PadRight(9, ' ')}\t{card.CountryName}");
             }
             _textbox.Write();
         }
@@ -360,7 +367,7 @@ namespace Risk
                 .Parameter(cards)
                 .MatchBuilder(GetIntegerMatches)
                 .TestObjectBuilder((matches, validationParameter)
-                    => cards.Where(c => matches.Contains(c.Id)).ToList())
+                    => cards.Where(c => matches.Contains((int)c.CountryName)).ToList())
                 .ErrorChecks(
                     Check.ThreeSelectedFromOwnCards,
                     Check.ValidSet)
@@ -371,7 +378,10 @@ namespace Risk
 
         public void PrepareUiForPlayer(Player player)
         {
+            //_textbox.Clear();
             Console.ForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), player.Color);
+            _textbox.Write($"{player.Name} ...");
+            _textbox.Write();
         }
 
         public Deployment GetAttackParameters(Player player, CountryInfo[] countries, Deployment previousAttackParameters)
@@ -416,14 +426,6 @@ namespace Risk
         {
             _textbox.Write(error);
             _textbox.Write();
-
-            //foreach (var error in nextAttackParameters.Errors)
-            //{
-            //    _textbox.Write(error);
-            //}
-
-            //_textbox.Write("Please try again.");
-            //_textbox.Write();
         }
 
         // TODO: Should this be combined with GetAttackParameters?
@@ -698,6 +700,11 @@ namespace Risk
             _textbox.Write($"{fromContinents} from continent occupation");
             _textbox.Write($"{fromCards} from cards");
             _textbox.Write();
+        }
+
+        public void ManagePlayerElimination(Player invader, Player defender)
+        {
+            _textbox.Write($"{defender.Name} has been eliminated. All of {defender.Name}'s cards have been passed onto {invader.Name}");
         }
     }
 }
