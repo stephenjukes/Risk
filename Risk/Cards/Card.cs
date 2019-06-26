@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    class Card
+    public class Card
     {
         public CardType CardType { get; }
         public CountryName CountryName { get; }

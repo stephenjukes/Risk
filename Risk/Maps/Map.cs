@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Risk
 {
-    abstract class Map
+    abstract public class Map
     {
         public Map() { Links = CreateLinks(LinkArray); }
 

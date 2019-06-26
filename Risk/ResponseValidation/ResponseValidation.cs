@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace Risk
 {
-    class ResponseValidation<TestObject, TMatch> where TestObject : new()
+    public class ResponseValidation<TestObject, TMatch> where TestObject : new()
     {
         public string _response;      
         public Func<string, TMatch[]> _getMatches;
@@ -19,16 +19,12 @@ namespace Risk
         public int _armiesToDistribute { get; set; }
         public List<Card> _cards { get; set; }
 
-
         public ValidationResult<TestObject> CheckErrors()
         {
             var validationParameter = CreateValidationParameter();
 
             if (validationParameter == null)
                 return new ValidationResult<TestObject>(default(TestObject), false, "Response not recognised.");
-
-            //var errors = _errorChecks.Select(check => check(validationParameter)).Where(e => e != null).ToArray();
-            //var isValid = !errors.Any();
 
             string error = null;
             var validationResult = new ValidationResult<TestObject>(validationParameter.Object, true, error);

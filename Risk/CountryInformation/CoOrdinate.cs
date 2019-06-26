@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    class CoOrdinate
+    public class CoOrdinate
     {
         public int Row { get; set; }
         public int Column { get; set; }

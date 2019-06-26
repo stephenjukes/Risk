@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-// 
-
 namespace Risk
 {
-    class Game
+    public class Game
     {
         private Player[] _players;
         private IUserInterface _ui;       
@@ -48,7 +46,8 @@ namespace Risk
         }
 
         private void SetUpGame()
-        {          
+        {
+            PromptForFullScreen();
             SetUpContinents();
             SetUpCards();
             DefineNeighbours();
@@ -57,6 +56,12 @@ namespace Risk
             DetermineOpeningIncome();
             Render();
             SetUpArmies();
+        }
+
+        private void PromptForFullScreen()
+        {
+            Console.WriteLine("Please set your console to maximum size, and then press any key");
+            Console.ReadLine();
         }
 
         private void DetermineOpeningIncome()
@@ -411,12 +416,17 @@ namespace Risk
 
         private void SetUpPlayers()
         {
-            _players = _ui.SetUpPlayers();
+            var playerQuantity = _ui.SetUpPlayers();
+            _players = new Player[playerQuantity];
 
             for (var i = 0; i < _players.Length; i++)
             {
                 _players[i] = _ui.SetUpPlayer(i + 1);
+
+                _players[i].Cards.AddRange(_cards.Where(card => (int)card.CountryName % (i + 5) == 0)); // delete when not required for testing
             }
+
+            _ui._textbox.Clear();   // move to ui later
         }
 
         private void AllocateCountries()

@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace Risk
 {
-    class CountryInfo
+    public class CountryInfo
     {
         public CountryName Name { get; set; }
         public StateSpace StateSpace { get; }

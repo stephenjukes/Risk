@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    class Player
+    public class Player
     {
         public int Id { get; }
         public string Name { get; set; }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    class ArmyIncome
+    public class ArmyIncome
     {
         public int FromCountries { get; set; }
         public int FromContinents { get; set; }

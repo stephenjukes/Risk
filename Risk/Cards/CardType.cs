@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    enum CardType
+    public enum CardType
     {
         Infantry,
         Cavalry,

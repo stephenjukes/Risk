@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Risk.UserInterface.ConsoleUserInterface;
 
 namespace Risk
 {
-    class Program
+    public class Program
     {
         public static void Main(string[] args)
         {
@@ -57,7 +58,7 @@ namespace Risk
 // v2.2
 // DONE: Use opposite link if indirect
 // DONE: Complete Link parameters only after link selected
-// DONE: Store country, continent and link information in a Map class.
+// DONE: Store country, continent and link information in a Map public class.
 
 // v3
 // DONE: have the ui ask how many players
@@ -69,7 +70,11 @@ namespace Risk
 // DONE: Ensure that no two players have the same name --or-- introduce unique player Ids
 
 // v4
-// split ConsoleUserInterface into partial classes
+// Refactor all methods requiring user input to use response handling and validation
+// Separate ConsoleUserInterface into partial classes
+
+// v5
+// split ConsoleUserInterface into partial public classes
 // Throw exceptions if Map data is not invalid
 // Add country transposing functionality
 // ~~~ amend to find 'y' and 'n' with regex (to handle approximate responses)

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    class HorizontalLink : Link
+    public class HorizontalLink : Link
     {
         public HorizontalLink(CountryInfo country, CountryInfo neighbour, params LinkType[] linkTypes) : base(country, neighbour, linkTypes) { }
 

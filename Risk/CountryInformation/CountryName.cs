@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    enum CountryName
+    public enum CountryName
     {
         Alaska = 1, NorthWestTerritory, Alberta, Ontario, Quebec, WesternUnitedStates, EasternUnitedStates, CentralAmerica, Greenland,  // NorthAmerica
         Venezuala, Peru, Brazil, Argentina,                                                                                             // SouthAmerica

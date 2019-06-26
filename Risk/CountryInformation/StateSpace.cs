@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    class StateSpace
+    public class StateSpace
     {
         public CoOrdinate TopLeft { get; }
         public CoOrdinate BottomRight { get; }

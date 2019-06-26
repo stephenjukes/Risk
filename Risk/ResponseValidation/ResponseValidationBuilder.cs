@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Risk
 {
-    class ResponseValidationBuilder<TestObject, TMatch> where TestObject : new()
+    public class ResponseValidationBuilder<TestObject, TMatch> where TestObject : new()
     {
         public string _response { get; set; }
         public Func<string, TMatch[]> _matchBuilder { get; set; }
@@ -14,7 +14,7 @@ namespace Risk
         public Player _player { get; set; }
         public CountryInfo[] _countries { get; set; }
         public Deployment _previousDeployment { get; set; }
-        public int _armiesToDistribute { get; set; }    // Can't we use Armies from 'From'?
+        public int _armiesToDistribute { get; set; }
         public List<Card> _cards { get; set; }
 
 
@@ -26,6 +26,36 @@ namespace Risk
             var property = this.GetType().GetProperties().Where(p => p.PropertyType == parameter.GetType()).FirstOrDefault();
             property.SetValue(this, parameter);
 
+            return this;
+        }
+
+        public ResponseValidationBuilder<TestObject, TMatch> Response<Parameter>(string response)
+        {
+            _response = response;
+            return this;
+        }
+
+        public ResponseValidationBuilder<TestObject, TMatch> Player<Parameter>(string response)
+        {
+            _response = response;
+            return this;
+        }
+
+        public ResponseValidationBuilder<TestObject, TMatch> Countries<Parameter>(string response)
+        {
+            _response = response;
+            return this;
+        }
+
+        public ResponseValidationBuilder<TestObject, TMatch> Deployment<Parameter>(string response)
+        {
+            _response = response;
+            return this;
+        }
+
+        public ResponseValidationBuilder<TestObject, TMatch> Cards<Parameter>(string response)
+        {
+            _response = response;
             return this;
         }
 

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    class EastLink : HorizontalLink
+    public class EastLink : HorizontalLink
     {
         public LinkType Direction { get; } = LinkType.East;
 

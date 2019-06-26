@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    class RemoteNeighbour : CountryInfo
+    public class RemoteNeighbour : CountryInfo
     {
         public RemoteNeighbour() { }
         public RemoteNeighbour(CountryName name, StateSpace stateSpace, Continent continent) : base(name, stateSpace, continent) { }

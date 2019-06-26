@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    enum ContinentName
+    public enum ContinentName
     {
         NorthAmerica,
         SouthAmerica,

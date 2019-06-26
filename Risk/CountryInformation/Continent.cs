@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    class Continent
+    public class Continent
     {
         public ContinentName Name { get; set; }
         public string Color { get; set; }

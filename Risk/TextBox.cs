@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace Risk
 {
-    class TextBox
+    public class TextBox
     {
         private StateSpace _stateSpace;
         private int _width;

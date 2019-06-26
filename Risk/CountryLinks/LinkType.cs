@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    enum LinkType
+    public enum LinkType
     {
         Default = 1,
         North,

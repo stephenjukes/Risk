@@ -4,12 +4,12 @@ using System.Text;
 
 namespace Risk
 {
-    interface IUserInterface
+    public interface IUserInterface
     {
         // Remove when finished
         TextBox _textbox { get; }
 
-        Player[] SetUpPlayers();
+        int SetUpPlayers();
         Player SetUpPlayer(int playerNumber);
         void Render(CountryInfo[] countries, IEnumerable<Link> links);
         List<Deployment> DistributeArmies(Player player, CountryInfo[] countries, int armies);

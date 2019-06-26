@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Risk
 {
-    class SkirmishResult
+    public class SkirmishResult
     {
         public int AttackingArmies { get; set; }
         public int DefendingArmies { get; set; }

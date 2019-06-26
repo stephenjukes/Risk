@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Risk
 {
-    static class Check
+    static public class Check
     {
         public static string ValidCountryIds(ValidationParameter<Deployment> p)
         {
@@ -63,17 +63,18 @@ namespace Risk
             return p.PreviousDeployment == null ? error : null;
         }
 
+        //public static string QuitOnlyOnLessThanFive(ValidationParameter<List<Card>> p)
+        //{
+        //    var error = "Cannot quit - you must trade when holding at least 5 cards";
+        //    var cardQuantity = p.Cards.Count;
+        //    return p.Cards.Count >= 5 ? 
+        //}
+
         public static string ThreeSelectedFromOwnCards(ValidationParameter<List<Card>> p)
         {
             var error = "Invalid selection";
             return p.Object.Count() != 3 ? error : null;
         }
-
-        //public static string ValidCardIds(ValidationParameter<List<Card>> p)
-        //{
-        //    var error = "You cannot select cards that you do not own";
-        //    return p.Object.Count != 3 ? error : null;
-        //}
 
         public static string ValidSet(ValidationParameter<List<Card>> p)
         {
@@ -83,6 +84,12 @@ namespace Risk
             var isValidSet = containsWildCard || distinctCardTypes.Count() == 1 || distinctCardTypes.Count() == 3;
 
             return !isValidSet ? error : null;
+        }
+
+        public static string ValidNumberOfPlayers(ValidationParameter<int> p)
+        {
+            var error = "Players must be between 2 and 6";
+            return p.Object < 2 || p.Object > 6 ? error : null;
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Risk
 {
-    class StandardMap : Map
+    public class StandardMap : Map
     {
         public StandardMap() : base() { }
 

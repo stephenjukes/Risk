@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Risk
 {
-    class Link
+    public class Link
     {
         public CountryInfo Country { get; }
         public CountryInfo Neighbour { get; }
