@@ -8,15 +8,12 @@ namespace Risk.UserInterface.ConsoleUserInterface
     {
         public Deployment GetArmyTransfer(Deployment deployment)
         {
-            var userInteraction = new UserInteraction<Deployment>();
-
-            userInteraction.Request
-                .Add("How many armies do you wish to transfer?");
-
-            userInteraction.ValidationParameter.PreviousDeployment = deployment;
-
-            userInteraction.ResponseInterpretation
-                .Add("default", vp => ValidateArmyTransfer(vp.PreviousDeployment, vp.Response));
+            var userInteraction = new UserInteractionBuilder<Deployment>()
+                .Request("How many armies do you wish to transfer?")
+                .ResponseInterpretations(
+                    new ResponseInterpretation<Deployment>("default", vp => ValidateArmyTransfer(vp.PreviousDeployment, vp.Response)))
+                .Deployment(deployment)
+                .Build();
 
             return HandleResponse(userInteraction);
         }
@@ -81,7 +78,7 @@ namespace Risk.UserInterface.ConsoleUserInterface
                 Console.SetCursorPosition(armyPosition.Column, armyPosition.Row);
                 Console.Write((distribution.To.Armies + sign * i).ToString().PadLeft(2, '0'));
 
-                Thread.Sleep(20);
+                Thread.Sleep(50);
             }
 
             Console.CursorVisible = true;

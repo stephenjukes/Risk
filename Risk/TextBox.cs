@@ -100,32 +100,3 @@ namespace Risk
 
     }
 }
-
-
-//private void TextboxWrite(string message)
-//{
-//    Console.SetCursorPosition(_nextLine.Column, _nextLine.Row);
-//    Console.Write(message);
-
-//    _nextLine = new CoOrdinate(Console.CursorTop + 1, _textbox.TopLeft.Column);
-//}
-
-//private string TextboxRead()
-//{
-//    Console.SetCursorPosition(_nextLine.Column, _nextLine.Row);
-//    _nextLine = new CoOrdinate(Console.CursorTop + 1, _textbox.TopLeft.Column);
-
-//    return Console.ReadLine();
-//}
-
-//private void TextboxReset()
-//{
-//    var emptyLine = String.Join(" ", new string[_textbox.BottomRight.Column - _textbox.TopLeft.Column + 10]);
-//    for (var row = _textbox.TopLeft.Row; row < _textbox.BottomRight.Row; row++)
-//    {
-//        Console.SetCursorPosition(_textbox.TopLeft.Column, row);
-//        Console.WriteLine(emptyLine);
-//    }
-
-//    _nextLine = new CoOrdinate(_textbox.TopLeft.Row, _textbox.TopLeft.Column);
-//}

@@ -6,18 +6,17 @@ namespace Risk.UserInterface.ConsoleUserInterface
     {
         public Deployment GetFortificationParameters(Player player, CountryInfo[] countries)
         {
-            var userInteraction = new UserInteraction<Deployment>();
-
-            userInteraction.Request.AddRange(new string[]
-                { "Fortify:",
+            var userInteraction = new UserInteractionBuilder<Deployment>()
+                .Request(
+                    "Fortify:",
                     "- [<x> armies from <country_A> to <country_B>]",
-                    "- [q]: to skip" });
-
-            userInteraction.ValidationParameter.Player = player;
-            userInteraction.ValidationParameter.Countries = countries;
-
-            userInteraction.ResponseInterpretation.Add("q", Quit);
-            userInteraction.ResponseInterpretation.Add("default", vp => ValidateFortificationParameters(vp.Player, vp.Countries, vp.Response));
+                    "- [q]: to skip")
+                .ResponseInterpretations(
+                    new ResponseInterpretation<Deployment>("q", Quit),
+                    new ResponseInterpretation<Deployment>("default", vp => ValidateFortificationParameters(vp.Player, vp.Countries, vp.Response)))
+                .Player(player)
+                .Countries(countries)
+                .Build();
 
             return HandleResponse(userInteraction);
         }

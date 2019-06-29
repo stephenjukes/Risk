@@ -8,21 +8,20 @@ namespace Risk.UserInterface.ConsoleUserInterface
     {
         public Deployment GetAttackParameters(Player player, CountryInfo[] countries, Deployment previousAttackParameters)
         {
-            var userInteraction = new UserInteraction<Deployment>();
-
-            userInteraction.Request.AddRange(new string[]
-                { "Attack:",
+            var userInteraction = new UserInteractionBuilder<Deployment>()
+                .Request(
+                    "Attack:",
                     "- [Enter]: continue with same attack parameters",
                     "- [<x> armies from <country_A> to <country_B>]",
-                    "- [q]: to skip" });
-
-            userInteraction.ValidationParameter.Player = player;
-            userInteraction.ValidationParameter.Countries = countries;
-            userInteraction.ValidationParameter.PreviousDeployment = previousAttackParameters;
-
-            userInteraction.ResponseInterpretation.Add("q", Quit);
-            userInteraction.ResponseInterpretation.Add("", vp => ValidatePreviousAttackParameters(vp.PreviousDeployment, vp.Response));
-            userInteraction.ResponseInterpretation.Add("default", vp => ValidateNewAttackParameters(vp.Player, vp.Countries, vp.Response));
+                    "- [q]: to skip")
+                .ResponseInterpretations(
+                    new ResponseInterpretation<Deployment>("q", Quit),
+                    new ResponseInterpretation<Deployment>("", vp => ValidatePreviousAttackParameters(vp.PreviousDeployment, vp.Response)),
+                    new ResponseInterpretation<Deployment>("default", vp => ValidateNewAttackParameters(vp.Player, vp.Countries, vp.Response)))
+                .Player(player)
+                .Countries(countries)
+                .Deployment(previousAttackParameters)
+                .Build();
 
             return HandleResponse(userInteraction);
         }

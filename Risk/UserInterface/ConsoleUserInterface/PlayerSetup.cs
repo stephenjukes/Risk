@@ -17,13 +17,12 @@ namespace Risk.UserInterface.ConsoleUserInterface
 
         public int SetUpPlayers()
         {
-            var userInteraction = new UserInteraction<int>();
-
-            userInteraction.Request
-                .Add("How many players?");
-
-            userInteraction.ResponseInterpretation
-                .Add("default", vp => ValidateNumberOfPlayers(vp.Response));
+            var userInteraction = new UserInteractionBuilder<int>()
+                .Request
+                    ("How many players?")
+                .ResponseInterpretations
+                    (new ResponseInterpretation<int>("default", vp => ValidateNumberOfPlayers(vp.Response)))
+                .Build();
 
             return HandleResponse(userInteraction);
         }

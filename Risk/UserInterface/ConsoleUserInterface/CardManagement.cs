@@ -38,58 +38,44 @@ namespace Risk.UserInterface.ConsoleUserInterface
         {
             if (!cards.Any()) return false;
 
-            var userInteraction = new UserInteraction<bool>();
-
-            userInteraction.Request.AddRange(new string[]
-                { "View cards:", "Press 'y' to view or 'n' to skip"});
-
-            userInteraction.ResponseInterpretation.Add("y", Accept);
-            userInteraction.ResponseInterpretation.Add("n", Decline);
-            userInteraction.ResponseInterpretation.Add("default", ResponseNotRecognised);
+            var userInteraction = new UserInteractionBuilder<bool>()
+                .Request(
+                    "View cards:",
+                    "Press 'y' to view or 'n' to skip")
+                .ResponseInterpretations(
+                    new ResponseInterpretation<bool>("y", Accept),
+                    new ResponseInterpretation<bool>("n", Decline),
+                    new ResponseInterpretation<bool>("default", ResponseNotRecognised))
+                .Cards(cards)
+                .Build();
 
             return HandleResponse(userInteraction);
         }
 
-        private void ViewCards(List<Card> cards)
-        {
-            _textbox.Write("ID\tCARDTYPE\tCOUNTRY");
-            _textbox.Write("--------------------------------");
-
-            foreach (var card in cards)
-            {
-                _textbox.Write(
-                    $"{((int)card.CountryName).ToString().PadLeft(2, '0')}\t" +
-                    $"{card.CardType.ToString().PadRight(9, ' ')}\t" +
-                    $"{card.CountryName}");
-            }
-            _textbox.Write();
-        }
-
         private bool GetDecisionToTrade()
         {
-            var userInteraction = new UserInteraction<bool>();
-
-            userInteraction.Request.AddRange(new string[]
-                { "Trade:", "Press 'y' to trade or 'n' to skip"});
-
-            userInteraction.ResponseInterpretation.Add("y", Accept);
-            userInteraction.ResponseInterpretation.Add("n", Decline);
-            userInteraction.ResponseInterpretation.Add("default", ResponseNotRecognised);
+            var userInteraction = new UserInteractionBuilder<bool>()
+                .Request(
+                    "Trade:",
+                    "Press 'y' to trade or 'n' to skip")
+                .ResponseInterpretations(
+                    new ResponseInterpretation<bool>("y", Accept),
+                    new ResponseInterpretation<bool>("n", Decline),
+                    new ResponseInterpretation<bool>("default", ResponseNotRecognised))
+                .Build();
 
             return HandleResponse(userInteraction);
         }
 
         private List<Card> TradeCards(List<Card> cards)
         {
-            var userInteraction = new UserInteraction<List<Card>>();
-
-            userInteraction.Request.AddRange(new string[]
-                { "Select card IDs for trade, separated by a comma"});
-
-            userInteraction.ValidationParameter.Cards = cards;
-
-            userInteraction.ResponseInterpretation.Add("q", vp => cards.Count >= 5 ? ProhibitQuit(vp) : Quit(vp));
-            userInteraction.ResponseInterpretation.Add("default", vp => ValidateCardTrade(vp.Cards, vp.Response));
+            var userInteraction = new UserInteractionBuilder<List<Card>>()
+                .Request("Select card IDs for trade, separated by a comma")
+                .ResponseInterpretations(
+                    new ResponseInterpretation<List<Card>>("q", vp => cards.Count >= 5 ? ProhibitQuit(vp) : Quit(vp)),
+                    new ResponseInterpretation<List<Card>>("default", vp => ValidateCardTrade(vp.Cards, vp.Response)))
+                .Cards(cards)
+                .Build();
 
             return HandleResponse(userInteraction);
         }
@@ -108,6 +94,21 @@ namespace Risk.UserInterface.ConsoleUserInterface
                 .Build();
 
             return responseValidation.CheckErrors();
+        }
+
+        private void ViewCards(List<Card> cards)
+        {
+            _textbox.Write("ID\tCARDTYPE\tCOUNTRY");
+            _textbox.Write("--------------------------------");
+
+            foreach (var card in cards)
+            {
+                _textbox.Write(
+                    $"{((int)card.CountryName).ToString().PadLeft(2, '0')}\t" +
+                    $"{card.CardType.ToString().PadRight(9, ' ')}\t" +
+                    $"{card.CountryName}");
+            }
+            _textbox.Write();
         }
     }
 }

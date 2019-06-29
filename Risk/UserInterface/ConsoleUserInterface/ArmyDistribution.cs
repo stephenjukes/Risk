@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Risk.ResponseValidation;
+using System;
 using System.Collections.Generic;
 
 namespace Risk.UserInterface.ConsoleUserInterface
@@ -16,34 +17,36 @@ namespace Risk.UserInterface.ConsoleUserInterface
 
         public List<Deployment> DistributeArmies(Player player, CountryInfo[] countries, int armies)
         {
-            var remainingArmies = armies;
-            var armyDistributions = new List<Deployment>();
             Console.ForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), player.Color);
-            //PrepareUiForPlayer(player);
-
-            while (remainingArmies > 0)
+            var armyDistributions = new List<Deployment>();
+            
+            while(armies > 0)
             {
-                _textbox.Write($"Distribute ({remainingArmies} armies):");
-                var response = _textbox.Read();
-                _textbox.Write();
-
-                var distribution = ValidateDistribution(response, remainingArmies, player, countries);
-
-                if (distribution.IsValid)
-                {
-                    armyDistributions.Add(distribution.Object);
-                    IncrementArmies(distribution.Object);
-                    remainingArmies -= distribution.Object.Armies;
-                    continue;
-                }
-
-                HandleError(distribution.Error);
+                var armyDistribution = GetArmiesForDistribution(player, countries, armies);
+                armyDistributions.Add(armyDistribution);
+                IncrementArmies(armyDistribution);
+                armies -= armyDistribution.Armies;
             }
 
             return armyDistributions;
         }
 
-        private ValidationResult<Deployment> ValidateDistribution(string response, int remainingArmies, Player player, CountryInfo[] countries)
+        private Deployment GetArmiesForDistribution(Player player, CountryInfo[] countries, int armies)
+        {
+            var userInteraction = new UserInteractionBuilder<Deployment>()
+                .Request($"Distribute ({armies} armies):")
+                .ResponseInterpretations
+                    (new ResponseInterpretation<Deployment>(
+                        "default", vp => ValidateDistribution(vp.Player, vp.Countries, vp.ArmiesToDistribute, vp.Response)))
+                .Player(player)
+                .Countries(countries)
+                .ArmiesToDistribute(armies)
+                .Build();
+
+            return HandleResponse(userInteraction);
+        }
+
+        private ValidationResult<Deployment> ValidateDistribution(Player player, CountryInfo[] countries, int remainingArmies, string response)
         {
             var responseValidation = new ResponseValidationBuilder<Deployment, int>()
                     .Parameter(response)

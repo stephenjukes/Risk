@@ -63,19 +63,24 @@ namespace Risk
 // v3
 // DONE: have the ui ask how many players
 // DONE: Attach Egypt and Middle East
-// DONE: Card IDs showing as 00. Fix 
+// DONE: Fix Card IDs showing as 00
 // DONE: Showing 'Insufficient armies to repeat previous attack parameters' for simple army transfer.
 // DONE: If player gets a card set after eliminating an army, force / give chance to trade
 // DONE: Add notification that a player has been eliminated and that cards have been transferred across
 // DONE: Ensure that no two players have the same name --or-- introduce unique player Ids
 
 // v4
-// Refactor all methods requiring user input to use response handling and validation
-// Separate ConsoleUserInterface into partial classes
+// DONE: Refactor all methods requiring user input to use response handling and validation
+// DONE: Separate ConsoleUserInterface into partial classes
 
-// v5
-// split ConsoleUserInterface into partial public classes
+// v4.1
+// DONE: Further refactor response handling to use builder pattern
+
+
+// Refactor some of the longer methods
+// Amend ResponseValidationBuilder to accept parameters according to parameter name
 // Throw exceptions if Map data is not invalid
 // Add country transposing functionality
 // ~~~ amend to find 'y' and 'n' with regex (to handle approximate responses)
+// Look at encapsulation
 

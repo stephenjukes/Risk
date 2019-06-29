@@ -11,12 +11,19 @@ namespace Risk
         public Func<string, TMatch[]> _matchBuilder { get; set; }
         public Func<TMatch[], ValidationParameter<TestObject>, TestObject> _testObjectBuilder { get; set; }
         public Func<ValidationParameter<TestObject>, string>[] _errorChecks { get; set; }
+
+        //public ValidationParameter<TestObject> validationParameter;
+
         public Player _player { get; set; }
         public CountryInfo[] _countries { get; set; }
         public Deployment _previousDeployment { get; set; }
         public int _armiesToDistribute { get; set; }
         public List<Card> _cards { get; set; }
 
+        //public ResponseValidationBuilder(ValidationParameter<TestObject> validationParameter)
+        //{
+
+        //}
 
         public ResponseValidationBuilder<TestObject, TMatch> Parameter<Parameter>(Parameter parameter)
         {
