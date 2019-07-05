@@ -19,12 +19,5 @@ namespace Risk
             Color = color;
             ArmyProvisionForMonpoly = armyProvisionForMonopoly;
         }
-
-        //public Continent(string name, int armyProvisionForMonopoly, int size)
-        //{
-        //    Name = name;
-        //    ArmyProvisionForMonpoly = armyProvisionForMonopoly;
-        //    Size = size;          
-        //}
     }
 }

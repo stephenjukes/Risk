@@ -37,7 +37,7 @@ namespace Risk.UserInterface.ConsoleUserInterface
                 .Request($"Distribute ({armies} armies):")
                 .ResponseInterpretations
                     (new ResponseInterpretation<Deployment>(
-                        "default", vp => ValidateDistribution(vp.Player, vp.Countries, vp.ArmiesToDistribute, vp.Response)))
+                        "default", vp => ValidateDistribution(vp)))
                 .Player(player)
                 .Countries(countries)
                 .ArmiesToDistribute(armies)
@@ -46,13 +46,10 @@ namespace Risk.UserInterface.ConsoleUserInterface
             return HandleResponse(userInteraction);
         }
 
-        private ValidationResult<Deployment> ValidateDistribution(Player player, CountryInfo[] countries, int remainingArmies, string response)
+        private ValidationResult<Deployment> ValidateDistribution(ValidationParameter<Deployment> validationParameter)
         {
             var responseValidation = new ResponseValidationBuilder<Deployment, int>()
-                    .Parameter(response)
-                    .Parameter(remainingArmies)
-                    .Parameter(player)
-                    .Parameter(countries)
+                    .ValidationParameter(validationParameter)
                     .MatchBuilder(GetIntegerMatches)
                     .TestObjectBuilder(CreateDistribution)
                     .ErrorChecks(
@@ -61,7 +58,7 @@ namespace Risk.UserInterface.ConsoleUserInterface
                         Check.SufficientArmies)
                     .Build();
 
-            return responseValidation.CheckErrors();
+            return responseValidation.Validate();
         }
 
         private Deployment CreateDistribution(int[] matches, ValidationParameter<Deployment> validationParameter)

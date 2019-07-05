@@ -35,8 +35,8 @@ namespace Risk
                 foreach (var player in _players)
                 {
                     if (!player.IsActive) continue;
-                    currentPlayer = player;
 
+                    currentPlayer = player;
                     Play(player);
                     _ui._textbox.Clear();   // Add to ConsoleUserInterface later.
                 }
@@ -58,26 +58,8 @@ namespace Risk
             SetUpArmies();
         }
 
-        private void PromptForFullScreen()
-        {
-            Console.WriteLine("Please set your console to maximum size, and then press any key");
-            Console.ReadLine();
-        }
-
-        private void DetermineOpeningIncome()
-        {
-            var armiesBeforeCountryAllocation = armiesOnSetup[_players.Length];
-            var countriesByPlayer = _countries.GroupBy(c => c.Occupier);
-
-            foreach (var group in countriesByPlayer)
-            {
-                var player = group.Key;
-                player.OpeningIncome = armiesBeforeCountryAllocation - group.Count();
-            }
-        }
-
         private void Play(Player player)
-        {         
+        {
             _ui.PrepareUiForPlayer(player);
             player.hasEarnedCard = false;
 
@@ -89,14 +71,139 @@ namespace Risk
             ProvideCard(player);
         }
 
-        private void ProvideCard(Player player)
+        // SETUP
+        private void PromptForFullScreen()
         {
-            if (player.hasEarnedCard)
-            {
-                var drawnCard = _cards[0];
-                player.Cards.Add(drawnCard);
+            Console.WriteLine("Please set your console to maximum size, and then press any key");
+            Console.ReadLine();
+        }
 
-                _cards.RemoveAt(0);               
+        private void SetUpPlayers()
+        {
+            var playerQuantity = _ui.SetUpPlayers();
+            _players = new Player[playerQuantity];
+
+            for (var i = 0; i < _players.Length; i++)
+            {
+                _players[i] = _ui.SetUpPlayer(i + 1);
+
+                _players[i].Cards.AddRange(_cards.Where(card => (int)card.CountryName % (i + 5) == 0)); // delete when not required for testing
+            }
+
+            _ui._textbox.Clear();   // move to ui later
+        }
+
+        private void AllocateCountries()
+        {
+            var shuffledCountries = _countries.OrderBy(c => _random.Next()).ToArray();
+            var i = 1;
+
+            foreach (var country in shuffledCountries)
+            {
+                var playerNumber = i % _players.Length;
+                country.Occupier = _players[playerNumber];
+                i++;
+            }
+        }
+
+        // MAP
+        private void SetUpContinents()
+        {
+            _continents = _countries
+                .GroupBy(country => country.Continent)
+                .Select(group => new Continent
+                {
+                    Name = group.Key.Name,
+                    Color = group.First().Continent.Color,
+                    ArmyProvisionForMonpoly = group.First().Continent.ArmyProvisionForMonpoly,
+                    Size = group.Count()
+                });
+        }
+
+        private void DefineNeighbours()
+        {
+            AddRemoteNeighbours();
+
+            foreach (var country in _countries)
+            {
+                var remoteNeighbours = country.RemoteNeighbours;
+                country.Neighbours.AddRange(remoteNeighbours);
+
+                AddNeighbours(country);
+            }
+        }
+
+        private void AddRemoteNeighbours()
+        {
+            foreach (var link in _links)
+            {
+                var country = Array.Find(_countries, c => c.Name == link.Country.Name);
+                var neighbour = Array.Find(_countries, c => c.Name == link.Neighbour.Name);
+
+                country.RemoteNeighbours.Add(neighbour);
+                neighbour.RemoteNeighbours.Add(country);
+            }
+        }
+
+        private void AddNeighbours(CountryInfo country)
+        {
+            foreach (var potentialNeighbour in _countries)
+            {
+                var WestCoastIsDistinctToEastCoast = potentialNeighbour.StateSpace.TopLeft.Column > country.StateSpace.BottomRight.Column;
+                var EastCoastIsDistinctToWestCoast = potentialNeighbour.StateSpace.BottomRight.Column < country.StateSpace.TopLeft.Column;
+                var NorthCoastDistinctToSouthCoast = potentialNeighbour.StateSpace.BottomRight.Row < country.StateSpace.TopLeft.Row;
+                var SouthCoastDistinctToNorthCoast = potentialNeighbour.StateSpace.TopLeft.Row > country.StateSpace.BottomRight.Row;
+                var NorthWestCornerIsDistinctToSouthEastCorner = potentialNeighbour.StateSpace.TopLeft.Row == country.StateSpace.BottomRight.Row && potentialNeighbour.StateSpace.TopLeft.Column == country.StateSpace.BottomRight.Column;
+                var SouthEastCornerIsDistinctToNorthWestCorner = potentialNeighbour.StateSpace.BottomRight.Row == country.StateSpace.TopLeft.Row && potentialNeighbour.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
+                var NorthEastCornerIsDistinctToSouthWestCorner = potentialNeighbour.StateSpace.TopLeft.Row == country.StateSpace.BottomRight.Row && potentialNeighbour.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
+                var SouthWestCornerIsDistinctToNorthEastCorner = potentialNeighbour.StateSpace.BottomRight.Row == country.StateSpace.TopLeft.Row && potentialNeighbour.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
+
+                var countriesAreIsolated =
+                    WestCoastIsDistinctToEastCoast || EastCoastIsDistinctToWestCoast || NorthCoastDistinctToSouthCoast || SouthCoastDistinctToNorthCoast ||
+                    NorthWestCornerIsDistinctToSouthEastCorner || SouthEastCornerIsDistinctToNorthWestCorner || NorthEastCornerIsDistinctToSouthWestCorner || SouthWestCornerIsDistinctToNorthEastCorner ||
+                    country.Name == potentialNeighbour.Name;
+
+                if (!countriesAreIsolated) country.Neighbours.Add(potentialNeighbour);
+            }
+
+            //if (country.Neighbours.Count == 0)
+            //    throw new Exception($"{country.Name} has no neighbours. Please check statespace co-ordinates or remove country.");
+        }
+
+        private void Render() => _ui.Render(_countries, _links);
+
+        // ARMY DISTRIBUTION
+        // Consider whether to retain original OpeningIncomes in players instead of mutating.
+        private void SetUpArmies()
+        {
+            bool armiesStillToDistribute = true;
+
+            while (armiesStillToDistribute)
+            {
+                var distributionPerTurn = 10;
+                foreach (var player in _players)
+                {
+                    var distributionForThisTurn = player.OpeningIncome < distributionPerTurn ? player.OpeningIncome : distributionPerTurn;
+
+                    DistributeArmies(player, distributionForThisTurn);
+                    player.OpeningIncome -= distributionForThisTurn;
+
+                    // TODO: Try to add this to ConsoleUserInterface later.
+                    _ui._textbox.Clear();
+                }
+
+                armiesStillToDistribute = _players.Any(p => p.OpeningIncome > 0);
+            }
+        }
+
+        private void DistributeArmies(Player player, int armies)
+        {
+            var armiesToDistribute = _ui.DistributeArmies(player, _countries, armies);
+
+            foreach (var distribution in armiesToDistribute)
+            {
+                var targetCountry = Array.Find(_countries, c => c.Name == distribution.To.Name);
+                targetCountry.Armies += distribution.Armies;
             }
         }
 
@@ -110,6 +217,16 @@ namespace Risk
             }
         }
 
+        private void TransferArmies(Deployment deployment)
+        {
+            _ui.RenderArmyTransfer(deployment);
+
+            deployment.To.Occupier = deployment.From.Occupier;
+            deployment.To.Armies = deployment.Armies;
+            deployment.From.Armies -= deployment.Armies;
+        }
+
+        // ATTACK
         private void Attack(Player player)
         {
             Deployment previousAttackParameters = null;
@@ -164,18 +281,7 @@ namespace Risk
 
             var activePlayers = _players.Where(p => p.IsActive).Count();
             if (activePlayers == 1)
-            {
                 gameActive = false;
-            }
-        }
-
-        private void TransferArmies(Deployment deployment)
-        {
-            _ui.RenderArmyTransfer(deployment);
-
-            deployment.To.Occupier = deployment.From.Occupier;
-            deployment.To.Armies = deployment.Armies;
-            deployment.From.Armies -= deployment.Armies;
         }
 
         private void EngageBattle(Deployment attackParameters)
@@ -205,8 +311,7 @@ namespace Risk
                     {
                         armies -= 1;
                         attackParameters.From.Armies -= 1;
-                    }
-                        
+                    }                      
                 }
 
                 _ui.RenderSkirmish(attackParameters);              
@@ -225,51 +330,20 @@ namespace Risk
             Array.Reverse(dice);
         }
 
-        private void Render() => _ui.Render(_countries, _links);
-
+        // CARDS
         private void SetUpCards()
         {
-            //var cardTypes = new Type[] { typeof(InfantryCard), typeof(CavalryCard), typeof(ArtilleryCard) };
             var cardTypes = new CardType[] { CardType.Infantry, CardType.Cavalry, CardType.Artillery, CardType.Wild };
 
             _cards = _countries
                 .OrderBy(c => _random.Next())   // shuffles countries
                 .Select((country, index) =>
-                    {
-                        var cardType = cardTypes[index % cardTypes.Length];
-                        return new Card(cardType, country.Name);
-                    })
+                {
+                    var cardType = cardTypes[index % cardTypes.Length];
+                    return new Card(cardType, country.Name);
+                })
                 .OrderBy(c => _random.Next())   // shuffles card types
                 .ToList();
-        }
-
-        private void SetUpContinents()
-        {
-            _continents = _countries
-                .GroupBy(country => country.Continent)
-                .Select(group => new Continent
-                    {
-                        Name = group.Key.Name,
-                        Color = group.First().Continent.Color,
-                        ArmyProvisionForMonpoly = group.First().Continent.ArmyProvisionForMonpoly,
-                        Size = group.Count()
-                    });
-        }
-
-        private int DefineArmyIncome(Player player)
-        {
-            var occupied = _countries
-                .Where(c => c.Occupier.Id == player.Id)
-                .Select(c => c);
-            
-            var fromCountries = DefineIncomeByCountryOccupation(occupied.Count());
-            var fromContinents = DefineIncomeByContinentOccupation(occupied);
-            var fromCards = ManageCards(player);
-
-            _ui.DisplayArmyIncome(fromCountries, fromContinents, fromCards);
-
-            return fromCountries + fromContinents + fromCards;
-
         }
 
         private int ManageCards(Player player)
@@ -322,6 +396,58 @@ namespace Risk
             return false;
         }
 
+        private void ProvideCard(Player player)
+        {
+            if (player.hasEarnedCard)
+            {
+                var drawnCard = _cards[0];
+                player.Cards.Add(drawnCard);
+
+                _cards.RemoveAt(0);
+            }
+        }
+
+        private void IncrementArmies(CountryInfo country, int armies)
+        {
+            var distribution = new Deployment
+            {
+                Armies = armies,
+                To = country
+            };
+
+            _ui.IncrementArmies(distribution);
+
+            country.Armies += 2;    // ???
+        }
+
+        // INCOME
+        private void DetermineOpeningIncome()
+        {
+            var armiesBeforeCountryAllocation = armiesOnSetup[_players.Length];
+            var countriesByPlayer = _countries.GroupBy(c => c.Occupier);
+
+            foreach (var group in countriesByPlayer)
+            {
+                var player = group.Key;
+                player.OpeningIncome = armiesBeforeCountryAllocation - group.Count();
+            }
+        }
+
+        private int DefineArmyIncome(Player player)
+        {
+            var occupied = _countries
+                .Where(c => c.Occupier.Id == player.Id)
+                .Select(c => c);
+
+            var fromCountries = DefineIncomeByCountryOccupation(occupied.Count());
+            var fromContinents = DefineIncomeByContinentOccupation(occupied);
+            var fromCards = ManageCards(player);
+
+            _ui.DisplayArmyIncome(fromCountries, fromContinents, fromCards);
+
+            return fromCountries + fromContinents + fromCards;
+        }
+
         private int DefineIncomeByContinentOccupation(IEnumerable<CountryInfo> occupied)
         {
             var occupiedByContinent = occupied.GroupBy(c => c.Continent);
@@ -344,149 +470,6 @@ namespace Risk
         {
             var income = occupied / 3;
             return income > 3 ? income : 3;
-        }
-
-        private void DefineNeighbours()
-        {
-            AddRemoteNeighbours();
-
-            foreach (var country in _countries)
-            {
-                var remoteNeighbours = country.RemoteNeighbours;
-                country.Neighbours.AddRange(remoteNeighbours);
-
-                AddNeighbours(country);
-            }           
-        }
-
-        //private void AddUnattachedNeighbours(CountryInfo country)
-        //{
-        //    var unattachedNeighbourInfo = _countries.Where(c => country.RemoteNeighbours.Contains(c.Value)).ToList();
-
-        //    if (unattachedNeighbourInfo.Count() != country.RemoteNeighbours.Length)
-        //    {
-        //        var invalidNeighbours = country.RemoteNeighbours
-        //            .Where(name => !unattachedNeighbourInfo.Select(info => info.Value.Name).Contains(name));
-
-        //        throw new Exception($"Unattached country names: {String.Join(", ", invalidNeighbours)} could not be found as a neighbour of {country.Name}. Please check spelling.");
-        //    }
-
-        //    country.Neighbours.AddRange(
-        //        unattachedNeighbourInfo.Select(n => n.Value));
-        //}
-
-        private void AddRemoteNeighbours()
-        {
-            foreach (var link in _links)
-            {
-                var country = Array.Find(_countries, c => c.Name == link.Country.Name);  
-                var neighbour = Array.Find(_countries, c => c.Name == link.Neighbour.Name);
-
-                country.RemoteNeighbours.Add(neighbour);
-                neighbour.RemoteNeighbours.Add(country);
-            }
-        }
-
-        private void AddNeighbours(CountryInfo country)
-        {
-            foreach (var potentialNeighbour in _countries)
-            {
-                var WestCoastIsDistinctToEastCoast = potentialNeighbour.StateSpace.TopLeft.Column > country.StateSpace.BottomRight.Column;
-                var EastCoastIsDistinctToWestCoast = potentialNeighbour.StateSpace.BottomRight.Column < country.StateSpace.TopLeft.Column;
-                var NorthCoastDistinctToSouthCoast = potentialNeighbour.StateSpace.BottomRight.Row < country.StateSpace.TopLeft.Row;
-                var SouthCoastDistinctToNorthCoast = potentialNeighbour.StateSpace.TopLeft.Row > country.StateSpace.BottomRight.Row;
-                var NorthWestCornerIsDistinctToSouthEastCorner = potentialNeighbour.StateSpace.TopLeft.Row == country.StateSpace.BottomRight.Row && potentialNeighbour.StateSpace.TopLeft.Column == country.StateSpace.BottomRight.Column;
-                var SouthEastCornerIsDistinctToNorthWestCorner = potentialNeighbour.StateSpace.BottomRight.Row == country.StateSpace.TopLeft.Row && potentialNeighbour.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
-                var NorthEastCornerIsDistinctToSouthWestCorner = potentialNeighbour.StateSpace.TopLeft.Row == country.StateSpace.BottomRight.Row && potentialNeighbour.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
-                var SouthWestCornerIsDistinctToNorthEastCorner = potentialNeighbour.StateSpace.BottomRight.Row == country.StateSpace.TopLeft.Row && potentialNeighbour.StateSpace.BottomRight.Column == country.StateSpace.TopLeft.Column;
-
-                var countriesAreIsolated =
-                    WestCoastIsDistinctToEastCoast || EastCoastIsDistinctToWestCoast || NorthCoastDistinctToSouthCoast || SouthCoastDistinctToNorthCoast ||
-                    NorthWestCornerIsDistinctToSouthEastCorner || SouthEastCornerIsDistinctToNorthWestCorner || NorthEastCornerIsDistinctToSouthWestCorner || SouthWestCornerIsDistinctToNorthEastCorner ||
-                    country.Name == potentialNeighbour.Name;
-
-                if (!countriesAreIsolated) country.Neighbours.Add(potentialNeighbour);
-            }
-
-            //if (country.Neighbours.Count == 0)
-            //    throw new Exception($"{country.Name} has no neighbours. Please check statespace co-ordinates or remove country.");
-        }
-
-
-
-        private void SetUpPlayers()
-        {
-            var playerQuantity = _ui.SetUpPlayers();
-            _players = new Player[playerQuantity];
-
-            for (var i = 0; i < _players.Length; i++)
-            {
-                _players[i] = _ui.SetUpPlayer(i + 1);
-
-                _players[i].Cards.AddRange(_cards.Where(card => (int)card.CountryName % (i + 5) == 0)); // delete when not required for testing
-            }
-
-            _ui._textbox.Clear();   // move to ui later
-        }
-
-        private void AllocateCountries()
-        {
-            var shuffledCountries = _countries.OrderBy(c =>_random.Next()).ToArray();
-            var i = 1;
-
-            foreach(var country in shuffledCountries)
-            {
-                var playerNumber = i % _players.Length;
-                country.Occupier = _players[playerNumber];
-                i++;
-            }
-        }
-
-        // Consider whether to retain original OpeningIncomes in players instead of mutating.
-        private void SetUpArmies()
-        {
-            bool armiesStillToDistribute = true;
-
-            while (armiesStillToDistribute)
-            {
-                var distributionPerTurn = 10;               
-                foreach (var player in _players)
-                {
-                    var distributionForThisTurn = player.OpeningIncome < distributionPerTurn ? player.OpeningIncome : distributionPerTurn;
-
-                    DistributeArmies(player, distributionForThisTurn);
-                    player.OpeningIncome -= distributionForThisTurn;
-
-                    // TODO: Try to add this to ConsoleUserInterface later.
-                    _ui._textbox.Clear();
-                }
-
-                armiesStillToDistribute = _players.Any(p => p.OpeningIncome > 0);
-            }
-        }
-
-        private void DistributeArmies(Player player, int armies)
-        {
-            var armiesToDistribute = _ui.DistributeArmies(player, _countries, armies);
-
-            foreach (var distribution in armiesToDistribute)
-            {
-                var targetCountry = Array.Find(_countries, c => c.Name == distribution.To.Name);
-                targetCountry.Armies += distribution.Armies;
-            }
-        }
-
-        private void IncrementArmies(CountryInfo country, int armies)
-        {
-            var distribution = new Deployment
-            {
-                Armies = armies,
-                To = country
-            };
-
-            _ui.IncrementArmies(distribution);
-
-            country.Armies += 2;
         }
     }
 }

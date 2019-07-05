@@ -13,7 +13,7 @@ namespace Risk.UserInterface.ConsoleUserInterface
                     "- [q]: to skip")
                 .ResponseInterpretations(
                     new ResponseInterpretation<Deployment>("q", Quit),
-                    new ResponseInterpretation<Deployment>("default", vp => ValidateFortificationParameters(vp.Player, vp.Countries, vp.Response)))
+                    new ResponseInterpretation<Deployment>("default", vp => ValidateFortificationParameters(vp)))
                 .Player(player)
                 .Countries(countries)
                 .Build();
@@ -21,12 +21,10 @@ namespace Risk.UserInterface.ConsoleUserInterface
             return HandleResponse(userInteraction);
         }
 
-        private ValidationResult<Deployment> ValidateFortificationParameters(Player player, CountryInfo[] countries, string response)
+        private ValidationResult<Deployment> ValidateFortificationParameters(ValidationParameter<Deployment> validationParameter)
         {
             var responseValidation = new ResponseValidationBuilder<Deployment, int>()
-                .Parameter(response)
-                .Parameter(player)
-                .Parameter(countries)
+                .ValidationParameter(validationParameter)
                 .MatchBuilder(GetIntegerMatches)
                 .TestObjectBuilder(CreateDeployment)
                 .ErrorChecks(
@@ -37,7 +35,7 @@ namespace Risk.UserInterface.ConsoleUserInterface
                     Check.SufficientArmies)
                 .Build();
 
-            return responseValidation.CheckErrors();
+            return responseValidation.Validate();
         }
     }
 }

@@ -21,23 +21,23 @@ namespace Risk.UserInterface.ConsoleUserInterface
                 .Request
                     ("How many players?")
                 .ResponseInterpretations
-                    (new ResponseInterpretation<int>("default", vp => ValidateNumberOfPlayers(vp.Response)))
+                    (new ResponseInterpretation<int>("default", vp => ValidateNumberOfPlayers(vp)))
                 .Build();
 
             return HandleResponse(userInteraction);
         }
 
-        private ValidationResult<int> ValidateNumberOfPlayers(string response)
+        private ValidationResult<int> ValidateNumberOfPlayers(ValidationParameter<int> validationParameter)
         {
             var responseValidation = new ResponseValidationBuilder<int, int>()
-                .Parameter(response)
+                .ValidationParameter(validationParameter)
                 .MatchBuilder(GetIntegerMatches)
-                .TestObjectBuilder((matches, validationParameter) => matches[0])
+                .TestObjectBuilder((matches, vp) => matches[0])
                 .ErrorChecks(
                     Check.ValidNumberOfPlayers)
                 .Build();
 
-            return responseValidation.CheckErrors();
+            return responseValidation.Validate();
         }
 
         public Player SetUpPlayer(int playerId)
@@ -54,7 +54,6 @@ namespace Risk.UserInterface.ConsoleUserInterface
 
         public void PrepareUiForPlayer(Player player)
         {
-            //_textbox.Clear();
             Console.ForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), player.Color);
             _textbox.Write($"{player.Name} ...");
             _textbox.Write();

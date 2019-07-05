@@ -7,31 +7,45 @@ using System.Text.RegularExpressions;
 namespace Risk
 {
     public class ResponseValidation<TestObject, TMatch> where TestObject : new()
-    {
-        public string _response;      
+    {     
         public Func<string, TMatch[]> _getMatches;
         public Func<TMatch[], ValidationParameter<TestObject>, TestObject> _createTestObject;
         public Func<ValidationParameter<TestObject>, string>[] _errorChecks;
+        public ValidationParameter<TestObject> _validationParameter { get; set; }
 
-        public Player _player;
-        public CountryInfo[] _countries;
-        public Deployment _previousDeployment;
-        public int _armiesToDistribute { get; set; }
-        public List<Card> _cards { get; set; }
-
-        public ValidationResult<TestObject> CheckErrors()
+        public ValidationResult<TestObject> Validate()
         {
-            var validationParameter = CreateValidationParameter();
+            var parameterWithCandidate = CreateValidationCandidate();
 
-            if (validationParameter == null)
+            if (parameterWithCandidate == null)
                 return new ValidationResult<TestObject>(default(TestObject), false, "Response not recognised.");
 
-            string error = null;
-            var validationResult = new ValidationResult<TestObject>(validationParameter.Object, true, error);
+            return GetValidationResult(parameterWithCandidate);     
+        }
 
-            foreach(var check in _errorChecks)
+        private ValidationParameter<TestObject> CreateValidationCandidate()
+        {
+            var matches = _getMatches != null ? _getMatches(_validationParameter.Response) : null;
+
+            try
             {
-                error = check(validationParameter);
+                _validationParameter.Object = _createTestObject(matches, _validationParameter);
+                return _validationParameter;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private ValidationResult<TestObject> GetValidationResult(ValidationParameter<TestObject> parameterWithCandidate)
+        {
+            string error = null;
+            var validationResult = new ValidationResult<TestObject>(parameterWithCandidate.Object, true, error);
+
+            foreach (var check in _errorChecks)
+            {
+                error = check(parameterWithCandidate);
                 if (error != null)
                 {
                     validationResult.IsValid = false;
@@ -41,32 +55,6 @@ namespace Risk
             }
 
             return validationResult;
-        }
-
-        private ValidationParameter<TestObject> CreateValidationParameter()
-        {
-            TestObject testObject;
-            var matches = _getMatches != null ? _getMatches(_response) : null;
-
-            var validationParameter = new ValidationParameter<TestObject>
-            {
-                Player = _player,
-                Countries = _countries,
-                PreviousDeployment = _previousDeployment,
-                ArmiesToDistribute = _armiesToDistribute
-            };
-
-            try
-            {
-                testObject = _createTestObject(matches, validationParameter);
-            }
-            catch
-            {
-                return null;
-            }
-
-            validationParameter.Object = testObject;
-            return validationParameter;
         }
     }
 }

@@ -9,34 +9,13 @@ namespace Risk.UserInterface.ConsoleUserInterface
     {
         private TestObject HandleResponse<TestObject>(UserInteraction<TestObject> userInteraction) where TestObject : new()
         {
-            var request = userInteraction.Request;
-            var validationParameter = userInteraction.ValidationParameter;
-            var responseInterpretation = userInteraction.ResponseInterpretation;
-            ValidationResult<TestObject> validationResult;
-
             while (true)
             {
-                foreach (var line in request)
-                {
-                    _textbox.Write(line);
-                }
-
-                validationParameter.Response = _textbox.Read().ToLower();
+                userInteraction.ValidationParameter.Response = GetResponse(userInteraction);
                 _textbox.Write();
 
-                if (responseInterpretation.ContainsKey(validationParameter.Response))
-                    validationResult = responseInterpretation[validationParameter.Response](validationParameter);
-                else
-                {
-                    try
-                    {
-                        validationResult = responseInterpretation["default"](validationParameter);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("No 'default' key found in dictionary: responseInterpreter", ex);
-                    }
-                }
+                var responseInterpretation = InterpretResponse(userInteraction);
+                var validationResult = responseInterpretation(userInteraction.ValidationParameter);   // Todo: try to separate concerns
 
                 if (validationResult.IsValid)
                     return validationResult.Object;
@@ -44,6 +23,35 @@ namespace Risk.UserInterface.ConsoleUserInterface
                 _textbox.Write(validationResult.Error);
                 _textbox.Write();
             }
+        }
+
+        private Func<ValidationParameter<TestObject>, ValidationResult<TestObject>> InterpretResponse<TestObject>(
+            UserInteraction<TestObject> userInteraction) where TestObject : new()
+        {
+            var responseInterpretation = userInteraction.ResponseInterpretation;
+            var validationParameter = userInteraction.ValidationParameter;
+
+            if (responseInterpretation.ContainsKey(validationParameter.Response))
+                return responseInterpretation[validationParameter.Response];
+
+            try
+            {
+                return responseInterpretation["default"];
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("No 'default' key found in dictionary: responseInterpreter", ex);
+            }
+        }
+
+        private string GetResponse<TestObject>(UserInteraction<TestObject> userInteraction) where TestObject : new()
+        {
+            foreach (var line in userInteraction.Request)
+            {
+                _textbox.Write(line);
+            }
+
+            return _textbox.Read().ToLower();           
         }
 
         private int[] GetIntegerMatches(string response)

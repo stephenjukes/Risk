@@ -13,7 +13,7 @@ namespace Risk
         Player SetUpPlayer(int playerNumber);
         void Render(CountryInfo[] countries, IEnumerable<Link> links);
         List<Deployment> DistributeArmies(Player player, CountryInfo[] countries, int armies);
-        void IncrementArmies(Deployment armyDistribution);
+        void IncrementArmies(params Deployment[] distributions);
         List<Card> ManageCards(List<Card> cards, bool isValidSet);
         void PrepareUiForPlayer(Player player);
         Deployment GetAttackParameters(Player player, CountryInfo[] countries, Deployment previousAttackParameters);

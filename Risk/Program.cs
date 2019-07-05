@@ -76,11 +76,22 @@ namespace Risk
 // v4.1
 // DONE: Further refactor response handling to use builder pattern
 
+// v4.2
+// DONE: Allow response handling to pass on validation parameter to response validation
+// DONE: Refactor ResponseValidation
+// DONE: Refactor some of the longer methods
+// DONE: Amend ResponseValidationBuilder to accept parameters according to parameter name
 
-// Refactor some of the longer methods
-// Amend ResponseValidationBuilder to accept parameters according to parameter name
+
+// Game:
+    // Divide into partial classes
+    // Refactor EngageBattle
 // Throw exceptions if Map data is not invalid
 // Add country transposing functionality
 // ~~~ amend to find 'y' and 'n' with regex (to handle approximate responses)
 // Look at encapsulation
+// Invoke victory sequence immediately after player has won (ie:
+// no need to transfer armies
+// no need to transfer cards
+// no need to trade cards
 

@@ -73,27 +73,26 @@ namespace Risk.UserInterface.ConsoleUserInterface
                 .Request("Select card IDs for trade, separated by a comma")
                 .ResponseInterpretations(
                     new ResponseInterpretation<List<Card>>("q", vp => cards.Count >= 5 ? ProhibitQuit(vp) : Quit(vp)),
-                    new ResponseInterpretation<List<Card>>("default", vp => ValidateCardTrade(vp.Cards, vp.Response)))
+                    new ResponseInterpretation<List<Card>>("default", vp => ValidateCardTrade(vp)))
                 .Cards(cards)
                 .Build();
 
             return HandleResponse(userInteraction);
         }
 
-        private ValidationResult<List<Card>> ValidateCardTrade(List<Card> cards, string response)
+        private ValidationResult<List<Card>> ValidateCardTrade(ValidationParameter<List<Card>> validationParameter)
         {
             var responseValidation = new ResponseValidationBuilder<List<Card>, int>()
-                .Parameter(response)
-                .Parameter(cards)
+                .ValidationParameter(validationParameter)
                 .MatchBuilder(GetIntegerMatches)
-                .TestObjectBuilder((matches, validationParameter)
-                    => cards.Where(c => matches.Contains((int)c.CountryName)).ToList())
+                .TestObjectBuilder((matches, vp)
+                    => vp.Cards.Where(c => matches.Contains((int)c.CountryName)).ToList())
                 .ErrorChecks(
                     Check.ThreeSelectedFromOwnCards,
                     Check.ValidSet)
                 .Build();
 
-            return responseValidation.CheckErrors();
+            return responseValidation.Validate();
         }
 
         private void ViewCards(List<Card> cards)

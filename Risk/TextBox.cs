@@ -27,29 +27,18 @@ namespace Risk
             var lineBreaks = message.Split('\n');
             foreach (var lineBreak in lineBreaks)
             {
-                var textboxLine = new StringBuilder();
-                var words = lineBreak.Split(" ");
-                foreach (var word in words)
-                {
-                    if ($"{textboxLine} {word}".Length <= _width)
-                    {
-                        textboxLine.Append($" {word}");
-                    }
-                    else
-                    {
-                        _lines.Add(textboxLine.ToString().Trim(' '));
-                        textboxLine = new StringBuilder(word);                      
-                    }
-                }
-
-                _lines.Add(textboxLine.ToString().Trim(' ')); // is there a better way than just to duplicate the else block?
+                ConstructLines(lineBreak);             
             }
 
-            //_lines.AddRange(lines);
+            var textboxContent = ExtractTextboxContent();
+            PrintToTextbox(textboxContent);          
+        }
 
+        private List<string> ExtractTextboxContent()
+        {
             var startIndex = 0;
             var count = _lines.Count;
- 
+
             if (count > _height)
             {
                 startIndex = count - _height;
@@ -57,8 +46,31 @@ namespace Risk
                 WipeText();
             }
 
-            var textboxContent = _lines.GetRange(startIndex, count);
+            return _lines.GetRange(startIndex, count);
+        }
 
+        private void ConstructLines(string lineBreak)
+        {
+            var textboxLine = new StringBuilder();
+            var words = lineBreak.Split(" ");
+            foreach (var word in words)
+            {
+                if ($"{textboxLine} {word}".Length <= _width)
+                {
+                    textboxLine.Append($" {word}");
+                }
+                else
+                {
+                    _lines.Add(textboxLine.ToString().Trim(' '));
+                    textboxLine = new StringBuilder(word);
+                }
+            }
+
+            _lines.Add(textboxLine.ToString().Trim(' ')); // is there a better way than just to duplicate the else block?
+        }
+
+        private void PrintToTextbox(List<string> textboxContent)
+        {
             var i = _stateSpace.TopLeft.Row;
             foreach (var line in textboxContent)
             {

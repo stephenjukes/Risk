@@ -14,7 +14,7 @@ namespace Risk.UserInterface.ConsoleUserInterface
         public void AnnounceWinner(Player currentPlayer)
         {
             _textbox.Clear();
-            _textbox.Write($"{currentPlayer} wins!!!".ToUpper());
+            _textbox.Write($"{currentPlayer.Name} wins!!!".ToUpper());
             _textbox.Write();
         }
     }

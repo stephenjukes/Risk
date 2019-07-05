@@ -11,62 +11,72 @@ namespace Risk.UserInterface.ConsoleUserInterface
             var userInteraction = new UserInteractionBuilder<Deployment>()
                 .Request("How many armies do you wish to transfer?")
                 .ResponseInterpretations(
-                    new ResponseInterpretation<Deployment>("default", vp => ValidateArmyTransfer(vp.PreviousDeployment, vp.Response)))
+                    new ResponseInterpretation<Deployment>("default", vp => ValidateArmyTransfer(vp)))
                 .Deployment(deployment)
                 .Build();
 
             return HandleResponse(userInteraction);
         }
 
-        private ValidationResult<Deployment> ValidateArmyTransfer(Deployment deployment, string response)
+        private ValidationResult<Deployment> ValidateArmyTransfer(ValidationParameter<Deployment> validationParameter)
         {
             var responseValidation = new ResponseValidationBuilder<Deployment, int>()
-                .Parameter(response)
-                .Parameter(deployment)
+                .ValidationParameter(validationParameter)
                 .MatchBuilder(GetIntegerMatches)
-                .TestObjectBuilder((matches, validationParameter) => new Deployment
+                .TestObjectBuilder((matches, vp) => new Deployment
                 {
                     Armies = matches[0],
-                    From = deployment.From,
-                    To = deployment.To
+                    From = vp.PreviousDeployment.From,
+                    To = vp.PreviousDeployment.To
                 })
                 .ErrorChecks(
                     Check.SufficientArmies)
                 .Build();
 
-            return responseValidation.CheckErrors();
+            return responseValidation.Validate();
         }
 
-        // Army Transfer
         public void RenderArmyTransfer(Deployment armyTransfer)
         {
             var invadingDistribution = new Deployment
-            {
-                Armies = -armyTransfer.Armies,
-                To = armyTransfer.From
-            };
+                {
+                    Armies = -armyTransfer.Armies,
+                    To = armyTransfer.From
+                };
 
             var defendingDistribution = new Deployment
-            {
-                Armies = armyTransfer.Armies,
-                To = armyTransfer.To
-            };
+                {
+                    Armies = armyTransfer.Armies,
+                    To = armyTransfer.To
+                };
 
-            // flashing country info
+            TransformDefendingCountry(armyTransfer);
+            IncrementArmies(invadingDistribution, defendingDistribution);
+        }
+
+        private void TransformDefendingCountry(Deployment armyTransfer)
+        {
+            if (armyTransfer.From.Occupier.Id == armyTransfer.To.Occupier.Id)
+                return;
+
             for (var i = 0; i < 5; i++)
             {
                 var playerColor = i % 2 == 0 ? armyTransfer.From.Occupier.Color : armyTransfer.To.Occupier.Color;
                 RenderCountryInformation(armyTransfer.To, playerColor);
                 Thread.Sleep(200);
             }
-
-            // army incrementation
-            IncrementArmies(invadingDistribution);
-            IncrementArmies(defendingDistribution);
         }
 
         // Todo: Consider making this private and implementing through ArmyTransfer
-        public void IncrementArmies(Deployment distribution)
+        public void IncrementArmies(params Deployment[] distributions)
+        {
+            foreach(var distribution in distributions)
+            {
+                IncrementArmy(distribution);
+            }
+        }
+
+        private void IncrementArmy(Deployment distribution)
         {
             Console.CursorVisible = false;
 

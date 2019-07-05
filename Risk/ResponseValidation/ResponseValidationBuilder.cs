@@ -12,31 +12,15 @@ namespace Risk
         public Func<TMatch[], ValidationParameter<TestObject>, TestObject> _testObjectBuilder { get; set; }
         public Func<ValidationParameter<TestObject>, string>[] _errorChecks { get; set; }
 
-        //public ValidationParameter<TestObject> validationParameter;
+        public ValidationParameter<TestObject> _validationParameter;
 
-        public Player _player { get; set; }
-        public CountryInfo[] _countries { get; set; }
-        public Deployment _previousDeployment { get; set; }
-        public int _armiesToDistribute { get; set; }
-        public List<Card> _cards { get; set; }
-
-        //public ResponseValidationBuilder(ValidationParameter<TestObject> validationParameter)
-        //{
-
-        //}
-
-        public ResponseValidationBuilder<TestObject, TMatch> Parameter<Parameter>(Parameter parameter)
+        public ResponseValidationBuilder<TestObject, TMatch> ValidationParameter(ValidationParameter<TestObject> validationParameter)
         {
-            if (parameter == null) return this;
-
-            // Fun, but not really the correct way (what if 2 properties have the same type).
-            var property = this.GetType().GetProperties().Where(p => p.PropertyType == parameter.GetType()).FirstOrDefault();
-            property.SetValue(this, parameter);
-
+            _validationParameter = validationParameter;
             return this;
         }
 
-        public ResponseValidationBuilder<TestObject, TMatch> Response<Parameter>(string response)
+        public ResponseValidationBuilder<TestObject, TMatch> Response(string response)
         {
             _response = response;
             return this;
@@ -88,15 +72,10 @@ namespace Risk
         {
             return new ResponseValidation<TestObject, TMatch>
             {
-                _response = _response,
-                _armiesToDistribute = _armiesToDistribute,
+                _validationParameter = _validationParameter,
                 _getMatches = _matchBuilder,
                 _createTestObject = _testObjectBuilder,
                 _errorChecks = _errorChecks,
-                _player = _player,
-                _countries = _countries,
-                _previousDeployment = _previousDeployment,
-                _cards = _cards
             };
         }
     }
